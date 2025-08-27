@@ -18,6 +18,9 @@ export type Book = {
 };
 
 export function BookItem({ book }: { book: Book }) {
+  // This is a placeholder. In a real app, you'd get the current user's role.
+  const userRole = 'student'; // or 'librarian'
+
   const isAvailable = book.status === 'Available';
   const isCheckedOut = book.status === 'Checked Out';
   const isReserved = book.status === 'Reserved';
@@ -36,6 +39,7 @@ export function BookItem({ book }: { book: Book }) {
   }
 
   const getActionButton = () => {
+    // In a real app, these buttons would trigger server actions to update the book's status in a database.
     if (isAvailable) {
       return (
         <Button variant="outline" size="sm">
@@ -45,6 +49,8 @@ export function BookItem({ book }: { book: Book }) {
       );
     }
     if (isCheckedOut) {
+      // Typically, only a librarian or the borrowing student can return a book.
+      // We can add role checks here.
       return (
         <Button variant="outline" size="sm">
           <BookCheck className="mr-2 h-4 w-4" />
