@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { getRecommendations, type State } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -26,7 +27,7 @@ function SubmitButton() {
 }
 
 export function RecommendationEngine() {
-  const [state, formAction] = useFormState(getRecommendations, initialState);
+  const [state, formAction] = useActionState(getRecommendations, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
