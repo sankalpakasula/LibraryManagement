@@ -3,10 +3,12 @@ import { SearchBar } from '@/components/search-bar';
 import { CategoryTags } from '@/components/category-tags';
 import { BookList } from '@/components/book-list';
 import { RecommendationEngine } from '@/components/recommendation-engine';
+import { Navbar } from '@/components/navbar';
 
 export default function Home() {
   return (
     <div className="bg-background text-foreground font-body">
+      <Navbar />
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-12">
           
