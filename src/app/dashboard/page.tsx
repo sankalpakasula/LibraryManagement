@@ -1,9 +1,12 @@
 import { Navbar } from "@/components/navbar";
-import { books } from "@/lib/data";
+import { getBooks } from "@/lib/data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import type { Book } from "@/components/book-item";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const books: Book[] = await getBooks();
+
   return (
     <div className="bg-background text-foreground font-body min-h-screen">
       <Navbar />
@@ -30,8 +33,8 @@ export default function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {books.map((book, index) => (
-                  <TableRow key={index}>
+                {books.map((book) => (
+                  <TableRow key={book.id}>
                     <TableCell className="font-medium">{book.title}</TableCell>
                     <TableCell>{book.author}</TableCell>
                     <TableCell>

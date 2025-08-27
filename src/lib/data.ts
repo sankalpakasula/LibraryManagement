@@ -1,94 +1,30 @@
 import type { Book } from "@/components/book-item";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { firebaseApp } from "./firebase";
 
-export const books: Book[] = [
-  {
-    title: 'The Whispering Woods of Eldoria',
-    author: 'Elara Vance',
-    status: 'Available',
-    imageUrl: 'https://picsum.photos/300/400',
-    width: 300,
-    height: 400,
-    dataAiHint: 'fantasy book',
-    copies: 3,
-    available: 3,
-  },
-  {
-    title: 'Echoes of the Void',
-    author: 'Kaelen Cross',
-    status: 'Checked Out',
-    dueDate: '2024-08-15',
-    imageUrl: 'https://picsum.photos/300/401',
-    width: 300,
-    height: 401,
-    dataAiHint: 'scifi book',
-    copies: 2,
-    available: 0,
-  },
-  {
-    title: 'The Clockwork Conspiracy',
-    author: 'Silas Thorne',
-    status: 'Reserved',
-    imageUrl: 'https://picsum.photos/300/402',
-    width: 300,
-    height: 402,
-    dataAiHint: 'steampunk book',
-    copies: 1,
-    available: 0,
-  },
-  {
-    title: 'A Glimmer of Rome',
-    author: 'Julia Octavia',
-    status: 'Available',
-    imageUrl: 'https://picsum.photos/300/403',
-    width: 300,
-    height: 403,
-    dataAiHint: 'history book',
-    copies: 4,
-    available: 2,
-  },
-    {
-    title: 'Silicon Dreams',
-    author: 'Alex Chaney',
-    status: 'Available',
-    imageUrl: 'https://picsum.photos/300/404',
-    width: 300,
-    height: 404,
-    dataAiHint: 'cyberpunk novel',
-    copies: 5,
-    available: 1,
-  },
-  {
-    title: 'The Last Alchemist',
-    author: 'Isabelle Dubois',
-    status: 'Checked Out',
-    dueDate: '2024-08-22',
-    imageUrl: 'https://picsum.photos/300/405',
-    width: 300,
-    height: 405,
-    dataAiHint: 'historical fiction',
-    copies: 2,
-    available: 0,
-  },
-  {
-    title: 'Beneath the Cerulean Sea',
-    author: 'Mara Lin',
-    status: 'Reserved',
-    imageUrl: 'https://picsum.photos/300/406',
-    width: 300,
-    height: 406,
-    dataAiHint: 'underwater adventure',
-    copies: 3,
-    available: 0,
-  },
-  {
-    title: 'The Quantum Paradox',
-    author: 'Dr. Aris Thorne',
-    status: 'Available',
-    imageUrl: 'https://picsum.photos/300/407',
-    width: 300,
-    height: 407,
-    dataAiHint: 'theoretical physics',
-    copies: 2,
-    available: 2,
-  },
-];
+// Initialize Cloud Firestore and get a reference to the service
+const db = getFirestore(firebaseApp);
+
+export async function getBooks(): Promise<Book[]> {
+  const querySnapshot = await getDocs(collection(db, "books"));
+  const books: Book[] = [];
+  querySnapshot.forEach((doc) => {
+    // Note: This assumes your document structure in Firestore matches the Book type.
+    // You might need to adjust this mapping based on your actual data.
+    const data = doc.data();
+    books.push({
+      id: doc.id,
+      title: data.title,
+      author: data.author,
+      status: data.status,
+      dueDate: data.dueDate,
+      imageUrl: data.imageUrl,
+      width: data.width,
+      height: data.height,
+      dataAiHint: data.dataAiHint,
+      copies: data.copies,
+      available: data.available,
+    } as Book);
+  });
+  return books;
+}

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Bookmark, BookCheck, BookX } from 'lucide-react';
 
 export type Book = {
+  id: string;
   title: string;
   author: string;
   status: 'Available' | 'Checked Out' | 'Reserved';

@@ -1,7 +1,8 @@
 import { BookItem } from "./book-item";
-import { books } from "@/lib/data";
+import { getBooks } from "@/lib/data";
 
-export function BookList() {
+export async function BookList() {
+  const books = await getBooks();
   return (
     <section id="library-catalog">
       <h2 className="text-2xl font-headline font-semibold mb-4 text-primary/90">
