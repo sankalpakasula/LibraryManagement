@@ -38,9 +38,9 @@ const nextConfig: NextConfig = {
         "@mongodb-js/zstd": false,
         "snappy": false,
         "@aws-sdk/credential-providers": false,
-        "@aws-sdk/client-cognito-identity": false, 
         "kerberos": false,
         "gcp-metadata": false,
+        "@aws-sdk/client-cognito-identity": false, 
       };
     }
     return config;
