@@ -102,3 +102,57 @@ export async function signupUser(prevState: SignupState, formData: FormData): Pr
     return { message: 'An unexpected error occurred during signup.' };
   }
 }
+
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
+});
+
+export type LoginState = {
+  message?: string;
+  errors?: {
+    email?: string[];
+    password?: string[];
+  };
+};
+
+export async function loginUser(prevState: LoginState, formData: FormData): Promise<LoginState> {
+  const validatedFields = loginSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Validation failed. Please check the fields.',
+    };
+  }
+
+  const { email, password } = validatedFields.data;
+
+  try {
+    const { db } = await connectToDatabase();
+    const user = await db.collection('users').findOne({ email });
+
+    if (!user) {
+      return {
+        errors: { email: ['No user found with this email.'] },
+        message: 'Login failed.',
+      };
+    }
+
+    const passwordsMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordsMatch) {
+      return {
+        errors: { password: ['Invalid password.'] },
+        message: 'Login failed.',
+      };
+    }
+    
+    // Here you would typically create a session, set a cookie, etc.
+    // For now, we'll just return a success message.
+    return { message: 'Login successful!' };
+  } catch (e) {
+    console.error(e);
+    return { message: 'An unexpected error occurred during login.' };
+  }
+}
