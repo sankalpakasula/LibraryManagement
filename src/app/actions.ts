@@ -118,7 +118,7 @@ export type LoginState = {
   };
 };
 
-export async function loginUser(prevState: LoginState, formData: FormData): Promise<LoginState> {
+export async function loginUser(prevState: LoginState, formData: FormData) {
   const validatedFields = loginSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {

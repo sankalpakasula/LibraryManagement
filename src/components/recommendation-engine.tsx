@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { getRecommendations, type State } from '@/app/actions';
+import { getRecommendations, type RecommendationState } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,9 +12,7 @@ import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
 
-const initialState: State = {
-  message: '',
-};
+const initialState: RecommendationState = {};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
