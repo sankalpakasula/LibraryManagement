@@ -35,6 +35,12 @@ const nextConfig: NextConfig = {
         tls: false,
         '@aws-sdk/credential-provider-node': false,
         'aws4': false,
+        '@mongodb-js/zstd': false,
+        'snappy': false,
+        '@aws-sdk/client-cognito-identity': false,
+        '@aws-sdk/client-sts': false,
+        '@aws-sdk/credential-providers': false,
+        'mongodb-client-encryption': false,
       };
     }
     return config;
