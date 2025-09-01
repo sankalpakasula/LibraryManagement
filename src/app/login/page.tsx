@@ -19,11 +19,11 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="student@example.edu" />
+              <Input id="email" type="email" placeholder="student@example.edu" suppressHydrationWarning />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" />
+              <Input id="password" type="password" suppressHydrationWarning />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
