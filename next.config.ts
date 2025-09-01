@@ -33,6 +33,8 @@ const nextConfig: NextConfig = {
         fs: false,
         net: false,
         tls: false,
+        '@aws-sdk/credential-provider-node': false,
+        'aws4': false,
       };
     }
     return config;
