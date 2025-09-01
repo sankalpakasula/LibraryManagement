@@ -1,11 +1,22 @@
+
+'use client';
+
+import { useState } from 'react';
 import { Header } from '@/components/header';
 import { SearchBar } from '@/components/search-bar';
-import { CategoryTags } from '@/components/category-tags';
 import { BookList } from '@/components/book-list';
 import { RecommendationEngine } from '@/components/recommendation-engine';
 import { Navbar } from '@/components/navbar';
+import { CollectionsDropdown } from '@/components/collections-dropdown';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
+  const [selectedCollection, setSelectedCollection] = useState<string>('All');
+
+  const handleShowAll = () => {
+    setSelectedCollection('All');
+  };
+
   return (
     <div className="bg-background text-foreground font-body">
       <Navbar />
@@ -16,10 +27,15 @@ export default function Home() {
             <Header />
             <main>
               <SearchBar />
-              <CategoryTags />
+
               <div className="mt-8">
-                <BookList />
+                <div className="flex items-center gap-4 mb-4">
+                  <CollectionsDropdown onCollectionChange={setSelectedCollection} />
+                  <Button variant="outline" onClick={handleShowAll}>All Books</Button>
+                </div>
+                <BookList collection={selectedCollection} />
               </div>
+
             </main>
           </div>
           

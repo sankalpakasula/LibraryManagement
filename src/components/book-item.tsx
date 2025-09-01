@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ export type Book = {
   dataAiHint: string;
   copies: number;
   available: number;
+  category?: string;
 };
 
 export function BookItem({ book }: { book: Book }) {
@@ -28,23 +30,23 @@ export function BookItem({ book }: { book: Book }) {
 
   const getStatusBadge = () => {
     if (isAvailable) {
-      return <Badge variant="outline" className="border-green-600/50 text-green-700">Available</Badge>;
+      return <Badge variant="outline" className="border-green-600/50 text-green-700 text-xs">Available</Badge>;
     }
     if (isCheckedOut) {
-      return <Badge variant="secondary">Checked Out</Badge>;
+      return <Badge variant="secondary" className="text-xs">Checked Out</Badge>;
     }
     if (isReserved) {
-      return <Badge variant="destructive">Reserved</Badge>;
+      return <Badge variant="destructive" className="text-xs">Reserved</Badge>;
     }
-    return <Badge>{book.status}</Badge>
+    return <Badge className="text-xs">{book.status}</Badge>
   }
 
   const getActionButton = () => {
     // In a real app, these buttons would trigger server actions to update the book's status in a database.
     if (isAvailable) {
       return (
-        <Button variant="outline" size="sm">
-          <Bookmark className="mr-2 h-4 w-4" />
+        <Button variant="outline" size="sm" className="text-xs h-8">
+          <Bookmark className="mr-1 h-3.5 w-3.5" />
           Borrow
         </Button>
       );
@@ -53,16 +55,16 @@ export function BookItem({ book }: { book: Book }) {
       // Typically, only a librarian or the borrowing student can return a book.
       // We can add role checks here.
       return (
-        <Button variant="outline" size="sm">
-          <BookCheck className="mr-2 h-4 w-4" />
+        <Button variant="outline" size="sm" className="text-xs h-8">
+          <BookCheck className="mr-1 h-3.5 w-3.5" />
           Return
         </Button>
       );
     }
     if (isReserved) {
        return (
-        <Button variant="outline" size="sm" disabled>
-          <BookX className="mr-2 h-4 w-4" />
+        <Button variant="outline" size="sm" disabled className="text-xs h-8">
+          <BookX className="mr-1 h-3.5 w-3.5" />
           Reserved
         </Button>
       );
@@ -71,35 +73,35 @@ export function BookItem({ book }: { book: Book }) {
   }
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl dark:bg-card/60 bg-card/80 border-primary/10">
-      <CardHeader className="p-4 pb-2">
-        <div className="relative aspect-[3/4] w-full mb-4 overflow-hidden rounded-md">
+    <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg dark:bg-card/60 bg-card/80 border-primary/10">
+      <CardHeader className="p-3 pb-2">
+        <div className="relative aspect-[3/4] w-full mb-2 overflow-hidden rounded-sm">
           <Image
             src={book.imageUrl}
             alt={`Cover of ${book.title}`}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover"
             data-ai-hint={book.dataAiHint}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
         </div>
-        <CardTitle className="font-headline text-lg leading-tight tracking-tight h-14">{book.title}</CardTitle>
-        <p className="text-sm text-muted-foreground pt-1">{book.author}</p>
+        <CardTitle className="font-headline text-sm leading-tight tracking-tight h-10">{book.title}</CardTitle>
+        <p className="text-xs text-muted-foreground pt-1 truncate">{book.author}</p>
       </CardHeader>
-      <CardContent className="p-4 pt-2 flex-grow">
+      <CardContent className="p-3 pt-1 flex-grow">
         <div className="flex justify-between items-center">
           {getStatusBadge()}
           {!isAvailable && book.dueDate && (
             <p className="text-xs text-muted-foreground">Due: {book.dueDate}</p>
           )}
         </div>
-        <p className="text-xs text-muted-foreground mt-2">{book.available} of {book.copies} copies available</p>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-3 pt-0">
          <div className="flex justify-between w-full items-center">
             {getActionButton()}
-            <Button variant="ghost" size="icon" asChild>
+            <Button variant="ghost" size="icon" asChild className="h-8 w-8">
               <a href="https://www.goodreads.com/" target="_blank" rel="noopener noreferrer" aria-label={`Find ${book.title} on Goodreads`}>
-                <ExternalLink className="h-5 w-5 text-muted-foreground hover:text-primary" />
+                <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-primary" />
               </a>
             </Button>
           </div>

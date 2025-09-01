@@ -1,18 +1,68 @@
-import { BookItem } from "./book-item";
-import { getBooks } from "@/lib/data";
 
-export async function BookList() {
-  const books = await getBooks();
+'use client';
+import { BookItem, type Book } from "./book-item";
+import { getBooks } from "@/lib/data";
+import { useEffect, useState, useMemo } from "react";
+import { Skeleton } from "./ui/skeleton";
+
+export function BookList({ collection }: { collection: string }) {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBooks() {
+      setLoading(true);
+      const allBooks = await getBooks();
+      setBooks(allBooks);
+      setLoading(false);
+    }
+    fetchBooks();
+  }, []);
+
+  const filteredBooks = useMemo(() => {
+    if (collection === 'All') {
+      return books;
+    }
+    return books.filter(book => book.category === collection);
+  }, [books, collection]);
+
+  if (loading) {
+    return (
+      <section id="library-catalog">
+        <h2 className="text-xl font-headline font-semibold mb-4 text-primary/90">
+          In the Catalog
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {Array.from({ length: 12 }).map((_, index) => (
+             <div key={index} className="flex flex-col space-y-3">
+              <Skeleton className="h-[200px] w-full rounded-md" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="library-catalog">
-      <h2 className="text-2xl font-headline font-semibold mb-4 text-primary/90">
-        In the Catalog
+      <h2 className="text-xl font-headline font-semibold mb-4 text-primary/90">
+        {collection === 'All' ? 'In the Catalog' : `Collection: ${collection}`}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 group">
-        {books.map((book, index) => (
-          <BookItem key={index} book={book} />
-        ))}
-      </div>
+      {filteredBooks.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {filteredBooks.map((book) => (
+            <BookItem key={book.id} book={book} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>No books found in this collection.</p>
+        </div>
+      )}
     </section>
   );
 }
