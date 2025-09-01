@@ -29,18 +29,15 @@ const nextConfig: NextConfig = {
       // Exclude server-only modules from the client-side bundle
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        child_process: false,
-        fs: false,
-        net: false,
-        tls: false,
-        '@aws-sdk/credential-provider-node': false,
-        'aws4': false,
-        '@mongodb-js/zstd': false,
-        'snappy': false,
-        '@aws-sdk/client-cognito-identity': false,
-        '@aws-sdk/client-sts': false,
-        '@aws-sdk/credential-providers': false,
-        'mongodb-client-encryption': false,
+        "child_process": false,
+        "fs": false,
+        "net": false,
+        "tls": false,
+        "mongodb-client-encryption": false,
+        "aws4": false,
+        "@mongodb-js/zstd": false,
+        "snappy": false,
+        "@aws-sdk/credential-providers": false,
       };
     }
     return config;
