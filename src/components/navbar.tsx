@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { LayoutDashboard, LogIn } from "lucide-react";
+import { LayoutDashboard, LogIn, UserPlus } from "lucide-react";
 
 export function Navbar() {
   return (
@@ -17,6 +17,12 @@ export function Navbar() {
             <Link href="/login">
               <LogIn className="mr-2 h-4 w-4" />
               Login
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/signup">
+               <UserPlus className="mr-2 h-4 w-4" />
+              Sign Up
             </Link>
           </Button>
         </div>
