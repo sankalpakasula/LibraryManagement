@@ -1,49 +1,174 @@
+diff --git a/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js b/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
+index 471f4a9..80521e6 100644
+--- a/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
++++ b/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
+@@ -1,5 +1,5 @@
+ "use strict";
+-Object.defineProperty(exports, "__esModule", { value: true });
+-exports.MongocryptdManager = void 0;
+-const child_process_1 = require("child_process");
+-class MongocryptdManager {
+-    constructor(options) {
+-        this.spawnArgs = options.mongocryptdSpawnArgs || [];
+-        if (options.mongocryptdSpawnPath) {
+-            this.spawnPath = options.mongocryptdSpawnPath;
+-        }
+-        else if (options.mongocryptdBypassSpawn) {
+-            this.bypassSpawn = true;
+-        }
+-    }
+-    /**
+-     * @internal
+-     * This method is mainly for testing purposes, and should not be used in a production application.
+-     * It will explicitly spawn a new mongocryptd process, and will not check if one is already running.
+-     */
+-    spawn() {
+-        if (this.bypassSpawn) {
+-            return;
+-        }
+-        const cmdName = this.spawnPath || 'mongocryptd';
+-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+-        const { spawn } = require('child_process');
+-        // Spawned with stdio: ignore and detached: true
+-        // to ensure child can outlive parent.
+-        this._child = spawn(cmdName, this.spawnArgs, {
+-            stdio: 'ignore',
+-            detached: true
+-        });
+-        this._child.on('error', () => {
+-            // From the FLE spec:
+-            // "A driver MUST ignore all errors from spawning mongocryptd.
+-            // If a driver is unable to spawn mongocryptd,
+-            // a driver MUST proceed as if mongocryptd is not running."
+-        });
+-        this._child.unref();
+-    }
+-}
+-exports.MongocryptdManager = MongocryptdManager;
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.MongocryptdManager = void 0;
++class MongocryptdManager {
++    constructor(options) {
++        this.spawnArgs = options.mongocryptdSpawnArgs || [];
++        if (options.mongocryptdSpawnPath) {
++            this.spawnPath = options.mongocryptdSpawnPath;
++        }
++        else if (options.mongocryptdBypassSpawn) {
++            this.bypassSpawn = true;
++        }
++    }
++    /**
++     * @internal
++     * This method is mainly for testing purposes, and should not be used in a production application.
++     * It will explicitly spawn a new mongocryptd process, and will not check if one is already running.
++     */
++    spawn() {
++        if (this.bypassSpawn) {
++            return;
++        }
++        const cmdName = this.spawnPath || 'mongocryptd';
++        // eslint-disable-next-line @typescript-eslint/no-require-imports
++        const { spawn } = require('child' + '_process');
++        // Spawned with stdio: ignore and detached: true
++        // to ensure child can outlive parent.
++        this._child = spawn(cmdName, this.spawnArgs, {
++            stdio: 'ignore',
++            detached: true
++        });
++        this._child.on('error', () => {
++            // From the FLE spec:
++            // "A driver MUST ignore all errors from spawning mongocryptd.
++            // If a driver is unable to spawn mongocryptd,
++            // a driver MUST proceed as if mongocryptd is not running."
++        });
++        this._child.unref();
++    }
++}
++exports.MongocryptdManager = MongocryptdManager;
+diff --git a/node_modules/mongodb/lib/client-side-encryption/state_machine.js b/node_modules/mongodb/lib/client-side-encryption/state_machine.js
+index 416556e..e253c55 100644
+--- a/node_modules/mongodb/lib/client-side-encryption/state_machine.js
++++ b/node_modules/mongodb/lib/client-side-encryption/state_machine.js
+@@ -1,9 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MongoCryptdState = exports.MongoCryptKMSRequest = exports.MongoCryptCreateDataKey = exports.MongoCryptCreateEncryptedCollection = exports.MongoCryptEncrypt = exports.MongoCryptDecrypt = exports.MongoCryptFinalize = exports.MongoCryptClose = exports.MongoCryptNeedMoreMongoOperation = exports.MongoCryptNeedKMSCredentials = exports.MongoCryptNeedKMS = exports.MongoCryptReady = exports.MongoCryptError = void 0;
+-const fs = require("fs/promises");
+-const net = require("net");
+-const tls = require("tls");
++
+ const bson_1 = require("../bson");
+ const abstract_cursor_1 = require("../cursor/abstract_cursor");
+ const deps_1 = require("../deps");
+@@ -29,6 +27,9 @@
+ const kMongoCrypt = Symbol('mongoCrypt');
+ const kKMSRequest = Symbol('kmsRequest');
+ const kEncryptedFields = Symbol('encryptedFields');
++const tls = Symbol('tls');
++const net = Symbol('net');
++const fs = Symbol('fs');
+ /** @public */
+ class MongoCryptError extends error_1.MongoError {
+ }
+@@ -482,7 +483,10 @@
+             return this.execute();
+         }
+         const { host, port } = this.endpoint;
+-        const socket = tls.connect(Number(port), host, {
++        const tlsConnect = this[tls] ?? (this[tls] = require('tls'));
++        const netConnect = this[net] ?? (this[net] = require('net'));
++        const fsConnect = this[fs] ?? (this[fs] = require('fs/promises'));
++        const socket = tlsConnect.connect(Number(port), host, {
+             servername: host,
+             ca: await Promise.all(this.parent.kmsProviders.aws?.tlsCAFile?.map(file => fs.readFile(file)) ?? []),
+             cert: await Promise.all(this.parent.kmsProviders.aws?.tlsCertificateKeyFile?.map(file => fs.readFile(file)) ?? []),
+diff --git a/node_modules/mongodb/lib/cmap/connect.js b/node_modules/mongodb/lib/cmap/connect.js
+index 7a1a2b7..74254dd 100644
+--- a/node_modules/mongodb/lib/cmap/connect.js
++++ b/node_modules/mongodb/lib/cmap/connect.js
+@@ -5,8 +5,7 @@
+ exports.connect = exports.makeSocket = void 0;
+ const stream_1 = require("stream");
+ const net = require("net");
+-const tls = require("tls");
+ const constants_1 = require("../constants");
+ const deps_1 = require("../deps");
+ const error_1 = require("../error");
+@@ -21,6 +20,7 @@
+ const kStream = Symbol('stream');
+ const kSocket = Symbol('socket');
+ const kDelayed = Symbol('delayed');
++const tls = Symbol('tls');
+ class TLSSocket extends stream_1.Duplex {
+     constructor(socket, options) {
+         super();
+@@ -60,7 +60,8 @@
+         }
+         const tlsOptions = { ...tlsOptionsFromSession(this.options), ...this.options };
+         if (this.socket) {
+-            this.stream = tls.connect({ ...tlsOptions, socket: this.socket });
++            const tlsConnect = this[tls] ?? (this[tls] = require('tls'));
++            this.stream = tlsConnect.connect({ ...tlsOptions, socket: this.socket });
+             this.stream.on('error', err => this.emit('error', err));
+             this.stream.on('data', data => this.push(data));
+             this.stream.on('end', () => this.push(null));
 diff --git a/node_modules/mongodb/package.json b/node_modules/mongodb/package.json
-index 515c541..6472074 100644
+index 3f7e658..0d82992 100644
 --- a/node_modules/mongodb/package.json
 +++ b/node_modules/mongodb/package.json
-@@ -101,6 +101,9 @@
-     "./lib/bson.js": {
-       "browser": "./lib/bson.browser.js"
+@@ -98,7 +98,12 @@
+     "mongodb-client-encryption": ">=6.0.0 <7.0.0"
+   },
+   "peerDependenciesMeta": {
+-    "mongodb-client-encryption": {
+-      "optional": true
++    "mongodb-client-encryption": { "optional": true
      }
 +  },
 +  "browser": {
-+    "child_process": false
-   },
-   "homepage": "https://www.mongodb.com/docs/drivers/node/",
-   "directories": {
-diff --git a/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js b/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
-index 927b61f..50d3a49 100644
---- a/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
-+++ b/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
-@@ -35,7 +35,12 @@ class MongocryptdManager {
-     spawn() {
-         const cmdName = this.spawnPath || 'mongocryptd';
-         // eslint-disable-next-line @typescript-eslint/no-require-imports
--        const { spawn } = require('child_process');
-+        let spawn;
-+        try {
-+          spawn = require('child_process').spawn;
-+        } catch (e) {
-+          return;
-+        }
-         // Spawned with stdio: ignore and detached: true
-         // to ensure child can outlive parent.
-         this._child = spawn(cmdName, this.spawnArgs, {
-diff --git a/node_modules/mongodb/lib/utils.js b/node_modules/mongodb/lib/utils.js
-index 8c68dc3..3e1db6f 100644
---- a/node_modules/mongodb/lib/utils.js
-+++ b/node_modules/mongodb/lib/utils.js
-@@ -20,7 +20,11 @@ const BSON = (0, bson_1.getBSON)();
- const crypto_1 = require("crypto");
- const events_1 = require("events");
- const fs = require("fs");
--const os = require("os");
-+let os;
-+try {
-+  os = require("os");
-+} catch(e) {
-+}
- const path = require("path");
- const stream_1 = require("stream");
- const url_1 = require("url");
++    "child_process": false,
++    "fs": false,
++    "os": false,
++    "tls": false
+   }
+ }
