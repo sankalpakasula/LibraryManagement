@@ -4,6 +4,7 @@ import { recommendBooks } from '@/ai/flows/recommend-books';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
+import { redirect } from 'next/navigation';
 
 const recommendationSchema = z.object({
   borrowingHistory: z.string().min(10, { message: 'Please describe your borrowing history in at least 10 characters.' }),
@@ -148,11 +149,10 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
       };
     }
     
-    // Here you would typically create a session, set a cookie, etc.
-    // For now, we'll just return a success message.
-    return { message: 'Login successful!' };
   } catch (e) {
     console.error(e);
     return { message: 'An unexpected error occurred during login.' };
   }
+  
+  redirect('/dashboard');
 }

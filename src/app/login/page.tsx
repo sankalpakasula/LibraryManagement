@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,26 +30,19 @@ export default function LoginPage() {
   const [state, formAction] = useActionState(loginUser, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    if (state.message) {
+    if (state?.message) {
       if (state.errors) {
         toast({
           variant: 'destructive',
           title: 'Login Failed',
           description: state.message,
         });
-      } else {
-        toast({
-          variant: 'default',
-          title: 'Success!',
-          description: state.message,
-          className: 'bg-green-100 border-green-600/50 text-green-800'
-        });
-        formRef.current?.reset();
       }
     }
-  }, [state, toast]);
+  }, [state, toast, router]);
   
   return (
     <div className="bg-background text-foreground font-body min-h-screen">
@@ -61,19 +55,13 @@ export default function LoginPage() {
           </CardHeader>
            <form ref={formRef} action={formAction}>
             <CardContent className="space-y-4">
-               {state.message && !state.errors && (
-                  <Alert variant="default" className='border-green-600/50 text-green-700 bg-green-50'>
-                    <AlertTitle>Success!</AlertTitle>
-                    <AlertDescription>{state.message}</AlertDescription>
-                  </Alert>
-                )}
-               {state.errors?.email && (
+               {state?.errors?.email && (
                   <Alert variant="destructive">
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>{state.errors.email[0]}</AlertDescription>
                   </Alert>
                 )}
-                {state.errors?.password && (
+                {state?.errors?.password && (
                   <Alert variant="destructive">
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>{state.errors.password[0]}</AlertDescription>
