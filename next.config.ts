@@ -40,7 +40,7 @@ const nextConfig: NextConfig = {
         "@aws-sdk/credential-providers": false,
         "kerberos": false,
         "gcp-metadata": false,
-        "@aws-sdk/client-cognito-identity": false, 
+        "@aws-sdk/client-cognito-identity": false,
       };
     }
     return config;
