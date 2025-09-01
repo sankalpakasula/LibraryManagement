@@ -4,8 +4,6 @@ import {cn} from '@/lib/utils';
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'textarea'>>(
   ({className, ...props}, ref) => {
-    // Filter out non-standard props that might be added by browser extensions
-    const { fdprocessedid, ...rest } = props as any;
     return (
       <textarea
         className={cn(
@@ -13,7 +11,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'tex
           className
         )}
         ref={ref}
-        {...rest}
+        {...props}
       />
     );
   }

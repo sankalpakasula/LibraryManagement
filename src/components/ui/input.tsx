@@ -4,8 +4,6 @@ import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
-    // Filter out non-standard props that might be added by browser extensions
-    const { fdprocessedid, ...rest } = props as any;
     return (
       <input
         type={type}
@@ -14,7 +12,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className
         )}
         ref={ref}
-        {...rest}
+        {...props}
       />
     )
   }
