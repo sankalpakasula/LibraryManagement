@@ -27,7 +27,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" suppressHydrationWarning>
                 <LogIn className="mr-2 h-4 w-4" />
                 Sign In
             </Button>
