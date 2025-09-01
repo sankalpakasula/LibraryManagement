@@ -1,0 +1,49 @@
+diff --git a/node_modules/mongodb/package.json b/node_modules/mongodb/package.json
+index 515c541..6472074 100644
+--- a/node_modules/mongodb/package.json
++++ b/node_modules/mongodb/package.json
+@@ -101,6 +101,9 @@
+     "./lib/bson.js": {
+       "browser": "./lib/bson.browser.js"
+     }
++  },
++  "browser": {
++    "child_process": false
+   },
+   "homepage": "https://www.mongodb.com/docs/drivers/node/",
+   "directories": {
+diff --git a/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js b/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
+index 927b61f..50d3a49 100644
+--- a/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
++++ b/node_modules/mongodb/lib/client-side-encryption/mongocryptd_manager.js
+@@ -35,7 +35,12 @@ class MongocryptdManager {
+     spawn() {
+         const cmdName = this.spawnPath || 'mongocryptd';
+         // eslint-disable-next-line @typescript-eslint/no-require-imports
+-        const { spawn } = require('child_process');
++        let spawn;
++        try {
++          spawn = require('child_process').spawn;
++        } catch (e) {
++          return;
++        }
+         // Spawned with stdio: ignore and detached: true
+         // to ensure child can outlive parent.
+         this._child = spawn(cmdName, this.spawnArgs, {
+diff --git a/node_modules/mongodb/lib/utils.js b/node_modules/mongodb/lib/utils.js
+index 8c68dc3..3e1db6f 100644
+--- a/node_modules/mongodb/lib/utils.js
++++ b/node_modules/mongodb/lib/utils.js
+@@ -20,7 +20,11 @@ const BSON = (0, bson_1.getBSON)();
+ const crypto_1 = require("crypto");
+ const events_1 = require("events");
+ const fs = require("fs");
+-const os = require("os");
++let os;
++try {
++  os = require("os");
++} catch(e) {
++}
+ const path = require("path");
+ const stream_1 = require("stream");
+ const url_1 = require("url");
