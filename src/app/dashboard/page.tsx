@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useRef, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Navbar } from "@/components/navbar";
 import { getBooks } from "@/lib/data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,10 +11,56 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Loader2 } from "lucide-react";
+import { addBook, type AddBookState } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
-export default async function Dashboard() {
-  const books: Book[] = await getBooks();
+const initialState: AddBookState = {};
+
+function AddBookSubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+      Add Book
+    </Button>
+  );
+}
+
+export default function Dashboard() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const [state, formAction] = useActionState(addBook, initialState);
+
+  useEffect(() => {
+    async function fetchBooks() {
+      const allBooks = await getBooks();
+      setBooks(allBooks);
+    }
+    fetchBooks();
+  }, [state]); // Refetch books when state changes (i.e., after adding a book)
+
+  useEffect(() => {
+    if (state.message) {
+      if (state.errors) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to Add Book',
+          description: state.message,
+        });
+      } else {
+        toast({
+          title: 'Success!',
+          description: state.message,
+        });
+        formRef.current?.reset();
+        setOpen(false);
+      }
+    }
+  }, [state, toast]);
 
   return (
     <div className="bg-background text-foreground font-body min-h-screen">
@@ -25,7 +75,7 @@ export default async function Dashboard() {
               Track book inventory and status.
             </p>
           </div>
-          <Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -39,29 +89,34 @@ export default async function Dashboard() {
                   Enter the details of the new book to add it to the catalog.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="title" className="text-right">
-                    Title
-                  </Label>
-                  <Input id="title" placeholder="The Great Gatsby" className="col-span-3" />
+              <form ref={formRef} action={formAction}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="title" className="text-right">
+                      Title
+                    </Label>
+                    <Input id="title" name="title" placeholder="The Great Gatsby" className="col-span-3" />
+                  </div>
+                  {state?.errors?.title && <p className="text-sm font-medium text-destructive col-start-2 col-span-3">{state.errors.title[0]}</p>}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="author" className="text-right">
+                      Author
+                    </Label>
+                    <Input id="author" name="author" placeholder="F. Scott Fitzgerald" className="col-span-3" />
+                  </div>
+                  {state?.errors?.author && <p className="text-sm font-medium text-destructive col-start-2 col-span-3">{state.errors.author[0]}</p>}
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="copies" className="text-right">
+                      Copies
+                    </Label>
+                    <Input id="copies" name="copies" type="number" placeholder="5" className="col-span-3" />
+                  </div>
+                   {state?.errors?.copies && <p className="text-sm font-medium text-destructive col-start-2 col-span-3">{state.errors.copies[0]}</p>}
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="author" className="text-right">
-                    Author
-                  </Label>
-                  <Input id="author" placeholder="F. Scott Fitzgerald" className="col-span-3" />
-                </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="copies" className="text-right">
-                    Copies
-                  </Label>
-                  <Input id="copies" type="number" placeholder="5" className="col-span-3" />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">Add Book</Button>
-              </DialogFooter>
+                <DialogFooter>
+                  <AddBookSubmitButton />
+                </DialogFooter>
+              </form>
             </DialogContent>
           </Dialog>
         </header>
