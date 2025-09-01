@@ -39,7 +39,12 @@ export default function SignupPage() {
           description: state.message,
         });
       } else {
-        // On success, clear the form
+        toast({
+          variant: 'default',
+          title: 'Success!',
+          description: state.message,
+          className: 'bg-green-100 border-green-600/50 text-green-800'
+        });
         formRef.current?.reset();
       }
     }
@@ -57,7 +62,7 @@ export default function SignupPage() {
           <form ref={formRef} action={formAction}>
             <CardContent className="space-y-4">
                {state.message && !state.errors && (
-                <Alert variant="default" className='border-green-600/50 text-green-700'>
+                <Alert variant="default" className='border-green-600/50 text-green-700 bg-green-50'>
                   <AlertTitle>Success!</AlertTitle>
                   <AlertDescription>{state.message}</AlertDescription>
                 </Alert>
