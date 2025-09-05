@@ -113,6 +113,13 @@ export default function Dashboard() {
                     <Input id="copies" name="copies" type="number" placeholder="5" className="col-span-3" />
                   </div>
                    {state?.errors?.copies && <p className="text-sm font-medium text-destructive col-start-2 col-span-3">{state.errors.copies[0]}</p>}
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="genre" className="text-right">
+                      Genre
+                    </Label>
+                    <Input id="genre" name="genre" placeholder="Fiction" className="col-span-3" />
+                  </div>
+                   {state?.errors?.genre && <p className="text-sm font-medium text-destructive col-start-2 col-span-3">{state.errors.genre[0]}</p>}
                 </div>
                 <DialogFooter>
                   <AddBookSubmitButton />

@@ -162,6 +162,7 @@ const addBookSchema = z.object({
   title: z.string().min(1, { message: 'Title is required.' }),
   author: z.string().min(1, { message: 'Author is required.' }),
   copies: z.coerce.number().int().min(1, { message: 'Copies must be at least 1.' }),
+  genre: z.string().min(1, { message: 'Genre is required.' }),
 });
 
 export type AddBookState = {
@@ -170,6 +171,7 @@ export type AddBookState = {
     title?: string[];
     author?: string[];
     copies?: string[];
+    genre?: string[];
   };
 }
 
@@ -178,6 +180,7 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
     title: formData.get('title'),
     author: formData.get('author'),
     copies: formData.get('copies'),
+    genre: formData.get('genre'),
   });
 
   if (!validatedFields.success) {
@@ -187,7 +190,7 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
     };
   }
   
-  const { title, author, copies } = validatedFields.data;
+  const { title, author, copies, genre } = validatedFields.data;
 
   try {
     const { db } = await connectToDatabase();
@@ -203,9 +206,11 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
       height: 400,
       dataAiHint: 'book cover',
       dueDate: null,
+      genre,
     });
 
     revalidatePath('/dashboard');
+    revalidatePath('/');
     return { message: 'Book added successfully!' };
 
   } catch (e) {
