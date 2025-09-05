@@ -332,7 +332,6 @@ export async function returnBook(bookId: string, userId: string) {
       );
     } else {
        // If no reservation, the book becomes available
-       const newAvailable = book.available + 1;
        await db.collection('books').updateOne(
         { _id: bookObjectId },
         { 
