@@ -15,6 +15,7 @@ import { PlusCircle, Loader2 } from "lucide-react";
 import { addBook, type AddBookState } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const initialState: AddBookState = {};
 
@@ -27,6 +28,43 @@ function AddBookSubmitButton() {
     </Button>
   );
 }
+
+const BookTable = ({ books }: { books: Book[] }) => (
+  <ScrollArea className="w-full whitespace-nowrap rounded-lg border border-primary/10">
+     <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Title</TableHead>
+          <TableHead>Author</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Total Copies</TableHead>
+          <TableHead>Available Copies</TableHead>
+          <TableHead>Due Date</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {books.map((book) => (
+          <TableRow key={book.id}>
+            <TableCell className="font-medium">{book.title}</TableCell>
+            <TableCell>{book.author}</TableCell>
+            <TableCell>
+              <Badge 
+                variant={book.status === 'Available' ? 'outline' : book.status === 'Reserved' ? 'destructive' : 'secondary'}
+                className={book.status === 'Available' ? 'border-green-600/50 text-green-700' : ''}
+              >
+                {book.status}
+              </Badge>
+            </TableCell>
+            <TableCell>{book.copies}</TableCell>
+            <TableCell>{book.available}</TableCell>
+            <TableCell>{book.dueDate || 'N/A'}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </ScrollArea>
+);
+
 
 export default function Dashboard() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -63,6 +101,9 @@ export default function Dashboard() {
       }
     }
   }, [state, toast]);
+  
+  const checkedOutBooks = books.filter(book => book.status === 'Checked Out');
+  const reservedBooks = books.filter(book => book.status === 'Reserved');
 
   return (
     <div className="bg-background text-foreground font-body min-h-screen">
@@ -130,41 +171,22 @@ export default function Dashboard() {
           </Dialog>
         </header>
         <main>
-          <div className="bg-card/80 border-primary/10 rounded-lg">
-            <ScrollArea className="w-full whitespace-nowrap">
-               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Total Copies</TableHead>
-                    <TableHead>Available Copies</TableHead>
-                    <TableHead>Due Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {books.map((book) => (
-                    <TableRow key={book.id}>
-                      <TableCell className="font-medium">{book.title}</TableCell>
-                      <TableCell>{book.author}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={book.status === 'Available' ? 'outline' : book.status === 'Reserved' ? 'destructive' : 'secondary'}
-                          className={book.status === 'Available' ? 'border-green-600/50 text-green-700' : ''}
-                        >
-                          {book.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{book.copies}</TableCell>
-                      <TableCell>{book.available}</TableCell>
-                      <TableCell>{book.dueDate || 'N/A'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </div>
+           <Tabs defaultValue="all" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="all">All Books</TabsTrigger>
+              <TabsTrigger value="checked-out">Checked Out</TabsTrigger>
+              <TabsTrigger value="reserved">Reserved</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all">
+              <BookTable books={books} />
+            </TabsContent>
+            <TabsContent value="checked-out">
+              <BookTable books={checkedOutBooks} />
+            </TabsContent>
+            <TabsContent value="reserved">
+              <BookTable books={reservedBooks} />
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>
