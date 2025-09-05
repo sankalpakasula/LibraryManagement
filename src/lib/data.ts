@@ -1,4 +1,3 @@
-import type { Book } from "@/components/book-item";
 import { connectToDatabase } from "./mongodb";
 
 const initialBooks = [
@@ -39,7 +38,7 @@ const initialBooks = [
   { title: "Educated: A Memoir", author: "Tara Westover", copies: 9, category: "Biography" }
 ];
 
-async function seedDatabase() {
+export async function seedDatabase() {
   try {
     const { db } = await connectToDatabase();
     const booksCollection = db.collection("books");
@@ -62,33 +61,5 @@ async function seedDatabase() {
     }
   } catch (error) {
     console.error("Error seeding database:", error);
-  }
-}
-
-
-export async function getBooks(): Promise<Book[]> {
-  try {
-    await seedDatabase();
-    const { db } = await connectToDatabase();
-    const books = await db
-      .collection("books")
-      .find({})
-      .sort({ title: 1 }) // Sort books alphabetically by title
-      .toArray();
-
-    // The _id field from MongoDB is an ObjectId, which is not directly serializable
-    // for Next.js server components. We need to convert it to a string.
-    return books.map((book) => {
-      const { _id, ...rest } = book;
-      return {
-        id: _id.toString(),
-        ...rest,
-      } as Book;
-    });
-  } catch (error) {
-    console.error("Error fetching books from MongoDB:", error);
-    // In a real application, you'd want to handle this error more gracefully.
-    // For now, we'll return an empty array.
-    return [];
   }
 }

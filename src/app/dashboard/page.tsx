@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Navbar } from "@/components/navbar";
-import { getBooks } from "@/lib/data";
+import { getBooksAction } from "@/lib/actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { Book } from "@/components/book-item";
@@ -37,7 +37,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchBooks() {
-      const allBooks = await getBooks();
+      const allBooks = await getBooksAction();
       setBooks(allBooks);
     }
     fetchBooks();

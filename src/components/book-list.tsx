@@ -1,7 +1,7 @@
 
 'use client';
 import { BookItem, type Book } from "./book-item";
-import { getBooks } from "@/lib/data";
+import { getBooksAction } from "@/lib/actions";
 import { useEffect, useState, useMemo } from "react";
 import { Skeleton } from "./ui/skeleton";
 
@@ -12,7 +12,7 @@ export function BookList({ collection }: { collection: string }) {
   useEffect(() => {
     async function fetchBooks() {
       setLoading(true);
-      const allBooks = await getBooks();
+      const allBooks = await getBooksAction();
       setBooks(allBooks);
       setLoading(false);
     }
