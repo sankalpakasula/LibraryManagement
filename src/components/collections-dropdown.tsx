@@ -23,7 +23,8 @@ export function CollectionsDropdown({ onCollectionChange }: CollectionsDropdownP
   React.useEffect(() => {
     async function fetchGenres() {
       const books = await getBooksAction();
-      const allGenres = books.map(book => book.genre).filter(Boolean);
+      // Ensure we only get unique, valid genre strings
+      const allGenres = books.map(book => book.genre).filter((genre): genre is string => !!genre);
       const uniqueGenres = [...new Set(allGenres)];
       setCollections(uniqueGenres.sort());
     }
