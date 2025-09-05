@@ -50,7 +50,7 @@ export function BookList({ collection }: { collection: string }) {
   return (
     <section id="library-catalog">
       <h2 className="text-xl font-headline font-semibold mb-4 text-primary/90">
-        {collection === 'All' ? 'In the Catalog' : `Collection: ${collection}`}
+        {collection === 'All' ? 'All Genres' : `Collection: ${collection}`}
       </h2>
       {filteredBooks.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">

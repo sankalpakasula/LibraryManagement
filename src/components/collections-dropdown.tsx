@@ -33,12 +33,12 @@ export function CollectionsDropdown({ onCollectionChange }: CollectionsDropdownP
   return (
     <Select onValueChange={onCollectionChange} defaultValue="All">
       <SelectTrigger className="w-full sm:w-[280px]">
-        <SelectValue placeholder="Browse Collections" />
+        <SelectValue placeholder="Browse Genres" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
           <SelectLabel>Genres</SelectLabel>
-          <SelectItem value="All">All Collections</SelectItem>
+          <SelectItem value="All">All Genres</SelectItem>
           {collections.map((collection) => (
             <SelectItem key={collection} value={collection}>
               {collection}
