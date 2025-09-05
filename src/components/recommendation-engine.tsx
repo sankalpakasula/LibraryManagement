@@ -8,10 +8,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Wand2, Loader2, BookHeart } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
+import { BookItem } from './book-item';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+
 
 const initialState: RecommendationState = {};
 
@@ -19,8 +22,8 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-      Get Recommendations
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+      Find Books
     </Button>
   );
 }
@@ -31,36 +34,26 @@ export function RecommendationEngine() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.message) {
-      // Show error toast if there are errors OR if the message indicates an error.
-      if (state.errors || state.message.toLowerCase().includes('error') || state.message.toLowerCase().includes('fail')) {
-         toast({
-          variant: "destructive",
-          title: "An Error Occurred",
-          description: state.message,
-        });
-      }
-    }
     // Clear form only on successful recommendation generation.
     if (state.recommendations && state.recommendations.length > 0) {
         formRef.current?.reset();
     }
-  }, [state, toast]);
+  }, [state]);
 
   return (
     <Card className="sticky top-8 bg-card/80 border-primary/10">
       <CardHeader>
-        <CardTitle className="font-headline text-2xl text-primary">AI Recommendations</CardTitle>
-        <CardDescription>Let our AI suggest your next read based on your tastes.</CardDescription>
+        <CardTitle className="font-headline text-2xl text-primary">Find a Book</CardTitle>
+        <CardDescription>Search our catalog by keyword, title, author, or genre.</CardDescription>
       </CardHeader>
       <form ref={formRef} action={formAction}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="readingPreferences">Your Reading Preferences</Label>
+            <Label htmlFor="readingPreferences">Search Term</Label>
             <Textarea
               id="readingPreferences"
               name="readingPreferences"
-              placeholder="e.g., I enjoy epic fantasy, hard science fiction, and historical novels."
+              placeholder="e.g., 'Clean Code', 'business', 'Frank Herbert'"
               required
               className="bg-background"
               aria-describedby='preferences-error'
@@ -75,21 +68,23 @@ export function RecommendationEngine() {
         </CardFooter>
       </form>
       
+      {state.message && !state.recommendations && (
+         <CardContent>
+            <Alert variant="destructive">
+                <AlertTitle>Search Results</AlertTitle>
+                <AlertDescription>{state.message}</AlertDescription>
+            </Alert>
+         </CardContent>
+      )}
+
       {state.recommendations && state.recommendations.length > 0 && (
         <>
           <Separator className="mx-6 my-0" />
           <CardContent className="pt-6">
-            <h3 className="font-headline text-lg font-semibold mb-2">Our Suggestions for You:</h3>
-            <div className="space-y-4">
-                {state.recommendations.map((rec, i) => (
-                    <div key={i} className="flex gap-4 items-start bg-muted/50 p-3 rounded-md border">
-                        <BookHeart className="h-5 w-5 mt-1 text-primary/80 flex-shrink-0" />
-                        <div>
-                            <p className="font-semibold text-sm text-foreground">{rec.title}</p>
-                            <p className="text-xs text-muted-foreground italic mb-1">by {rec.author}</p>
-                            <p className="text-sm text-muted-foreground">{rec.reason}</p>
-                        </div>
-                    </div>
+            <h3 className="font-headline text-lg font-semibold mb-4">Matching Books:</h3>
+            <div className="grid grid-cols-2 gap-4">
+                {state.recommendations.map((book) => (
+                    <BookItem key={book.id} book={book} />
                 ))}
             </div>
           </CardContent>

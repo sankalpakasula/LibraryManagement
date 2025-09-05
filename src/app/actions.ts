@@ -8,6 +8,9 @@ import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
+import { getBooksAction } from '@/lib/actions';
+import type { Book } from '@/components/book-item';
+
 
 // Helper function to generate a unique 7-digit userId
 async function generateUniqueUserId(): Promise<string> {
@@ -27,12 +30,12 @@ async function generateUniqueUserId(): Promise<string> {
 
 
 const recommendationSchema = z.object({
-  readingPreferences: z.string().min(10, { message: 'Please describe your reading preferences in at least 10 characters.' }),
+  readingPreferences: z.string().min(3, { message: 'Please enter at least 3 characters to search.' }),
 });
 
 export type RecommendationState = {
   message?: string;
-  recommendations?: RecommendBooksOutput['recommendations'];
+  recommendations?: Book[];
   errors?: {
     readingPreferences?: string[];
   };
@@ -51,14 +54,23 @@ export async function getRecommendations(prevState: RecommendationState, formDat
   }
   
   try {
-    const result = await recommendBooks(validatedFields.data);
-    if (!result || !result.recommendations || result.recommendations.length === 0) {
-        return { message: 'The AI could not generate recommendations at this time. Please try again later.' };
+    const allBooks = await getBooksAction();
+    const searchKeywords = validatedFields.data.readingPreferences.toLowerCase().split(' ').filter(kw => kw.length > 0);
+
+    const matchedBooks = allBooks.filter(book => {
+        const bookText = `${book.title.toLowerCase()} ${book.author.toLowerCase()} ${book.genre.toLowerCase()}`;
+        return searchKeywords.every(kw => bookText.includes(kw));
+    });
+
+    if (matchedBooks.length === 0) {
+        return { message: 'No books found matching your keywords. Please try a different search.' };
     }
-    return { recommendations: result.recommendations, message: 'Here are your recommendations!' };
+
+    return { recommendations: matchedBooks, message: `Found ${matchedBooks.length} matching books!` };
+
   } catch (e) {
     console.error(e);
-    return { message: 'An unexpected error occurred while generating recommendations.' };
+    return { message: 'An unexpected error occurred while searching for books.' };
   }
 }
 
