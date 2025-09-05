@@ -32,7 +32,8 @@ export function RecommendationEngine() {
 
   useEffect(() => {
     if (state.message) {
-      if (state.errors || state.message.includes('error') || state.message.includes('try again')) {
+      // Show error toast if there are errors OR if the message indicates an error.
+      if (state.errors || state.message.toLowerCase().includes('error') || state.message.toLowerCase().includes('fail')) {
          toast({
           variant: "destructive",
           title: "An Error Occurred",
@@ -40,6 +41,7 @@ export function RecommendationEngine() {
         });
       }
     }
+    // Clear form only on successful recommendation generation.
     if (state.recommendations && state.recommendations.length > 0) {
         formRef.current?.reset();
     }
