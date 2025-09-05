@@ -81,7 +81,7 @@ export function RecommendationEngine() {
           <CardContent className="pt-6">
             <h3 className="font-headline text-lg font-semibold mb-4">{state.message}</h3>
              <ScrollArea className="h-[400px] w-full">
-                <div className="grid grid-cols-3 gap-4 pr-4">
+                <div className="grid grid-cols-4 gap-4 pr-4">
                     {state.recommendations.map((book) => (
                         <BookItem key={book.id} book={book} />
                     ))}
