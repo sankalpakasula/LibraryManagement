@@ -1,7 +1,6 @@
 
 'use server';
 
-import { recommendBooks, type RecommendBooksOutput } from '@/ai/flows/recommend-books';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
@@ -30,12 +29,12 @@ async function generateUniqueUserId(): Promise<string> {
 
 
 const recommendationSchema = z.object({
-  readingPreferences: z.string().min(10, { message: 'Please describe your preferences in at least 10 characters.' }),
+  readingPreferences: z.string().min(3, { message: 'Please enter at least 3 characters to search.' }),
 });
 
 export type RecommendationState = {
   message?: string;
-  recommendations?: RecommendBooksOutput['recommendations'];
+  recommendations?: Book[];
   errors?: {
     readingPreferences?: string[];
   };
@@ -54,19 +53,38 @@ export async function getRecommendations(prevState: RecommendationState, formDat
   }
   
   try {
-    const aiResponse = await recommendBooks({
-      readingPreferences: validatedFields.data.readingPreferences,
-    });
-    
-    if (!aiResponse?.recommendations || aiResponse.recommendations.length === 0) {
-      return { message: "The AI couldn't generate recommendations based on your preferences. Please try being more specific." };
+    const allBooks = await getBooksAction();
+    const searchInput = validatedFields.data.readingPreferences.toLowerCase().trim();
+    const keywords = searchInput.split(' ').filter(k => k);
+
+    if (keywords.length === 0) {
+      return {
+        message: 'Please enter some keywords to search for.',
+        recommendations: [],
+      }
     }
 
-    return { recommendations: aiResponse.recommendations, message: 'Here are your AI-powered recommendations!' };
+    const matchingBooks = allBooks.filter(book => {
+      const bookTitle = book.title.toLowerCase();
+      const bookAuthor = book.author.toLowerCase();
+      const bookGenre = book.genre.toLowerCase();
+
+      return keywords.some(keyword => 
+        bookTitle.includes(keyword) || 
+        bookAuthor.includes(keyword) ||
+        bookGenre.includes(keyword)
+      );
+    });
+
+    if (matchingBooks.length === 0) {
+       return { message: `No books found matching your search for "${validatedFields.data.readingPreferences}".`, recommendations: [] };
+    }
+    
+    return { recommendations: matchingBooks, message: `${matchingBooks.length} book(s) found!` };
 
   } catch (e) {
     console.error(e);
-    return { message: 'An unexpected error occurred while getting recommendations from the AI.' };
+    return { message: 'An unexpected error occurred while searching for books.' };
   }
 }
 
