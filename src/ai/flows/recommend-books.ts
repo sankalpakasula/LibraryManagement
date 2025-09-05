@@ -39,23 +39,12 @@ export async function recommendBooks(input: RecommendBooksInput): Promise<Recomm
 const prompt = ai.definePrompt({
   name: 'recommendBooksPrompt',
   input: {schema: RecommendBooksInputSchema},
-  // By removing the output schema here, we make the flow more resilient to
-  // minor variations in the LLM's output format. We will still get a JSON object.
-  // output: {schema: RecommendBooksOutputSchema},
+  output: {schema: RecommendBooksOutputSchema},
   prompt: `You are a helpful and knowledgeable librarian at the LibroSmart library. Your goal is to provide excellent, personalized book recommendations.
 
 Based on the user's reading preferences below, please suggest exactly 3 books they might enjoy. For each book, provide the title, author, and a short, compelling reason for the recommendation.
 
-You must provide your response as a JSON object that conforms to the following TypeScript type:
-'''ts
-type RecommendBooksOutput = {
-  recommendations: {
-    title: string;
-    author: string;
-    reason: string;
-  }[];
-};
-'''
+You must provide your response as a JSON object that conforms to the output schema.
 
 Reading Preferences:
 {{{readingPreferences}}}
@@ -70,8 +59,9 @@ const recommendBooksFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    // The output is now of type `any`, so we cast it to our expected type.
-    // The server action will handle potential runtime errors.
-    return output as RecommendBooksOutput;
+    if (!output) {
+      throw new Error("The AI model did not return any output.");
+    }
+    return output;
   }
 );
