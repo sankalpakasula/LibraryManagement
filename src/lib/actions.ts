@@ -51,10 +51,12 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
       height: 400,
       dataAiHint: 'book cover',
       dueDate: null,
+      // A default genre, you might want to change this
+      genre: 'Uncategorized'
     });
 
     revalidatePath('/dashboard');
-    revalidatePath('/');
+    revalidatePath('/'); // This was the missing piece
     return { message: 'Book added successfully!' };
 
   } catch (e) {
