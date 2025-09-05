@@ -113,6 +113,7 @@ const loginSchema = z.object({
 
 export type LoginState = {
   message?: string;
+  userId?: string;
   errors?: {
     email?: string[];
     password?: string[];
@@ -151,12 +152,15 @@ export async function loginUser(prevState: LoginState, formData: FormData) {
       };
     }
     
+    // This is a conceptual representation. In a real app, you would use a secure session management solution.
+    // For this example, we'll redirect with a user ID, but this is NOT secure.
+    redirect(`/my-books?userId=${user._id.toString()}`);
+
   } catch (e) {
     console.error(e);
     return { message: 'An unexpected error occurred during login.' };
   }
   
-  redirect('/dashboard');
 }
 
 const addBookSchema = z.object({
@@ -208,6 +212,7 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
       dataAiHint: 'book cover',
       dueDate: null,
       genre,
+      borrowedBy: null,
     });
 
     revalidatePath('/dashboard');
@@ -220,7 +225,7 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
   }
 }
 
-export async function borrowBook(bookId: string) {
+export async function borrowBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
     const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
@@ -234,11 +239,12 @@ export async function borrowBook(bookId: string) {
 
     await db.collection('books').updateOne(
       { _id: new ObjectId(bookId) },
-      { $set: { available: newAvailable, status: newStatus } }
+      { $set: { available: newAvailable, status: newStatus, borrowedBy: new ObjectId(userId) } }
     );
     
     revalidatePath('/');
     revalidatePath('/dashboard');
+    revalidatePath('/my-books');
   } catch (e) {
     console.error("Error borrowing book:", e);
     // In a real app, you'd return a proper error state.
@@ -259,16 +265,17 @@ export async function returnBook(bookId: string) {
 
     await db.collection('books').updateOne(
       { _id: new ObjectId(bookId) },
-      { $set: { available: newAvailable, status: newStatus } }
+      { $set: { available: newAvailable, status: newStatus, borrowedBy: null } }
     );
     revalidatePath('/');
     revalidatePath('/dashboard');
+    revalidatePath('/my-books');
   } catch (e) {
     console.error("Error returning book:", e);
   }
 }
 
-export async function reserveBook(bookId: string) {
+export async function reserveBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
     const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
@@ -277,12 +284,14 @@ export async function reserveBook(bookId: string) {
       throw new Error("Cannot reserve a book that is currently available.");
     }
 
+    // In a real system, reservations would be a queue. For now, we'll just mark it.
     await db.collection('books').updateOne(
       { _id: new ObjectId(bookId) },
-      { $set: { status: 'Reserved' } }
+      { $set: { status: 'Reserved', borrowedBy: new ObjectId(userId) } }
     );
     revalidatePath('/');
     revalidatePath('/dashboard');
+    revalidatePath('/my-books');
   } catch (e) {
     console.error("Error reserving book:", e);
   }

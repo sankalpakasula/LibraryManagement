@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "./ui/sheet";
-import { LayoutDashboard, LogIn, UserPlus, Menu, Library } from "lucide-react";
+import { LayoutDashboard, LogIn, UserPlus, Menu, Library, BookUser } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // NOTE: This is a placeholder for a real authentication check.
+  const isLoggedIn = true; 
 
   return (
     <nav className="bg-card/80 border-b border-primary/10 sticky top-0 z-40">
@@ -19,10 +22,16 @@ export function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-2">
+           <Button variant="ghost" asChild>
+            <Link href="/my-books">
+              <BookUser />
+              My Books
+            </Link>
+          </Button>
           <Button variant="ghost" asChild>
             <Link href="/dashboard">
               <LayoutDashboard />
-              Dashboard
+              Admin
             </Link>
           </Button>
           <Button variant="ghost" asChild>
@@ -57,9 +66,15 @@ export function Navbar() {
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
+                    <Link href="/my-books" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
+                      <BookUser />
+                      My Books
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
                     <Link href="/dashboard" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
                       <LayoutDashboard />
-                      Dashboard
+                      Admin
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>

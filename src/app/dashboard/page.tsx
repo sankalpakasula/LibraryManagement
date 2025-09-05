@@ -39,7 +39,7 @@ const BookTable = ({ books }: { books: Book[] }) => (
           <TableHead>Status</TableHead>
           <TableHead>Total Copies</TableHead>
           <TableHead>Available Copies</TableHead>
-          <TableHead>Due Date</TableHead>
+          <TableHead>User ID</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -57,7 +57,7 @@ const BookTable = ({ books }: { books: Book[] }) => (
             </TableCell>
             <TableCell>{book.copies}</TableCell>
             <TableCell>{book.available}</TableCell>
-            <TableCell>{book.dueDate || 'N/A'}</TableCell>
+            <TableCell>{book.borrowedBy?.toString() || 'N/A'}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -112,7 +112,7 @@ export default function Dashboard() {
         <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl sm:text-4xl font-headline font-bold text-primary tracking-tight">
-              Librarian Dashboard
+              Admin Dashboard
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
               Track book inventory and status.

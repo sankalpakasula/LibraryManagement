@@ -1,4 +1,5 @@
 import { connectToDatabase } from "./mongodb";
+import { ObjectId } from 'mongodb';
 
 const initialBooks = [
   // CSE Books
@@ -46,10 +47,25 @@ export async function seedDatabase() {
     const { db } = await connectToDatabase();
     const booksCollection = db.collection("books");
     
+    // Create a dummy user for relationship seeding if it doesn't exist
+    const usersCollection = db.collection("users");
+    const fakeUserId = new ObjectId('663a8b4a7e36c5e21a8c5478');
+    const fakeUser = await usersCollection.findOne({ _id: fakeUserId });
+    if (!fakeUser) {
+        await usersCollection.insertOne({
+            _id: fakeUserId,
+            name: 'Demo User',
+            email: 'user@example.com',
+            // In a real app, password would be hashed
+            password: 'password123',
+            createdAt: new Date(),
+        });
+    }
+
     const firstBook = await booksCollection.findOne({});
-    // If the collection is empty or the documents are missing the 'genre' field, re-seed.
-    if (!firstBook || !firstBook.genre) {
-      console.log("Books collection is empty or needs genre update, seeding database...");
+    // If the collection is empty or the documents are missing the 'borrowedBy' field, re-seed.
+    if (!firstBook || !firstBook.hasOwnProperty('borrowedBy')) {
+      console.log("Books collection is empty or needs user relationship field, seeding database...");
       
       // Clear the collection to ensure a fresh start
       await booksCollection.deleteMany({});
@@ -63,10 +79,11 @@ export async function seedDatabase() {
         height: 400,
         dataAiHint: 'book cover',
         dueDate: null,
+        borrowedBy: null, // Add the borrowedBy field
       }));
       
       await booksCollection.insertMany(booksToInsert);
-      console.log("Database seeded successfully with genres.");
+      console.log("Database seeded successfully with user relationship field.");
     }
   } catch (error) {
     console.error("Error seeding database:", error);

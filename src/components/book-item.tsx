@@ -9,6 +9,7 @@ import { ExternalLink, Bookmark, BookCheck, BookX, Loader2 } from 'lucide-react'
 import { borrowBook, returnBook, reserveBook } from '@/app/actions';
 import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { ObjectId } from 'mongodb';
 
 export type Book = {
   id: string;
@@ -23,16 +24,21 @@ export type Book = {
   copies: number;
   available: number;
   genre: string;
+  borrowedBy: ObjectId | null;
 };
+
+// This is a placeholder for a real authentication system
+const FAKE_USER_ID = '663a8b4a7e36c5e21a8c5478';
 
 export function BookItem({ book }: { book: Book }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const handleAction = async (action: (id: string) => Promise<void>, id: string, successMessage: string, errorMessage: string) => {
+  const handleAction = async (action: (id: string, userId?: string) => Promise<void>, id: string, successMessage: string, errorMessage: string) => {
     startTransition(async () => {
       try {
-        await action(id);
+        // In a real app, you would get the current user's ID from a session
+        await action(id, FAKE_USER_ID);
         toast({
           title: 'Success',
           description: successMessage,
@@ -48,7 +54,7 @@ export function BookItem({ book }: { book: Book }) {
   };
 
   const isAvailable = book.available > 0;
-  const isCheckedOut = book.available < book.copies && book.status !== 'Reserved';
+  const isCheckedOutByCurrentUser = book.borrowedBy?.toString() === FAKE_USER_ID;
   const isReserved = book.status === 'Reserved';
 
   const getStatusBadge = () => {
@@ -69,11 +75,16 @@ export function BookItem({ book }: { book: Book }) {
       </>
     );
 
-    if (isReserved) {
-      return (
-        <Button variant="outline" size="sm" disabled className="text-xs h-8">
-          <BookX className="mr-1 h-3.5 w-3.5" />
-          Reserved
+    if (isCheckedOutByCurrentUser) {
+       return (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs h-8"
+          disabled={isPending}
+          onClick={() => handleAction(returnBook, book.id, `You returned "${book.title}".`, "Failed to return book.")}
+        >
+          {buttonContent(isPending, BookCheck, 'Return')}
         </Button>
       );
     }
@@ -92,28 +103,26 @@ export function BookItem({ book }: { book: Book }) {
       );
     }
 
-    if (!isAvailable && !isReserved) { // All copies checked out, not reserved yet
+    if (!isAvailable && !isReserved && !isCheckedOutByCurrentUser) { // All copies checked out, not reserved yet
        return (
-         <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-xs h-8"
-              disabled={isPending}
-              onClick={() => handleAction(returnBook, book.id, `One copy of "${book.title}" has been returned.`, "Failed to return book.")}
-            >
-              {buttonContent(isPending, BookCheck, 'Return')}
-            </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              className="text-xs h-8"
-              disabled={isPending}
-              onClick={() => handleAction(reserveBook, book.id, `"${book.title}" has been reserved.`, "Failed to reserve book.")}
-            >
-              {buttonContent(isPending, BookX, 'Reserve')}
-            </Button>
-         </div>
+         <Button 
+            variant="destructive" 
+            size="sm" 
+            className="text-xs h-8"
+            disabled={isPending}
+            onClick={() => handleAction(reserveBook, book.id, `"${book.title}" has been reserved.`, "Failed to reserve book.")}
+          >
+            {buttonContent(isPending, BookX, 'Reserve')}
+          </Button>
+      );
+    }
+
+    if (isReserved) {
+       return (
+        <Button variant="outline" size="sm" disabled className="text-xs h-8">
+          <BookX className="mr-1 h-3.5 w-3.5" />
+          Reserved
+        </Button>
       );
     }
 
