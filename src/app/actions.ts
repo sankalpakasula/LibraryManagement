@@ -93,11 +93,13 @@ export async function signupUser(prevState: SignupState, formData: FormData): Pr
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    
     const newUserId = new ObjectId();
+    const userIdString = newUserId.toString();
 
     await usersCollection.insertOne({
       _id: newUserId,
-      userId: newUserId.toString(),
+      userId: userIdString,
       name,
       email,
       password: hashedPassword,
@@ -141,7 +143,8 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
 
   try {
     const { db } = await connectToDatabase();
-    const user = await db.collection('users').findOne({ email });
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ email });
 
     if (!user) {
       return {
@@ -159,11 +162,25 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
       };
     }
     
+    // Retroactively add userId if it's missing
+    if (!user.userId) {
+      await usersCollection.updateOne(
+        { _id: user._id },
+        { $set: { userId: user._id.toString() } }
+      );
+      // Re-fetch user to get the latest data
+      const updatedUser = await usersCollection.findOne({ _id: user._id });
+      if(updatedUser) {
+        user.userId = updatedUser.userId;
+      }
+    }
+    
     const role = email === 'tatidheeraj@gmail.com' ? 'admin' : 'user';
+    const userId = user.userId || user._id.toString();
 
     return {
       message: 'Login successful!',
-      userId: user._id.toString(),
+      userId: userId,
       userName: user.name,
       role: role,
     };
@@ -394,6 +411,7 @@ export async function reserveBook(bookId: string, userId: string) {
      throw new Error((e as Error).message);
   }
 }
+
 
 
 
