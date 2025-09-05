@@ -37,8 +37,7 @@ export type RecommendBooksOutput = z.infer<typeof RecommendBooksOutputSchema>;
 export async function recommendBooks(
   input: RecommendBooksInput
 ): Promise<RecommendBooksOutput> {
-  const llmResponse = await recommendBooksFlow(input);
-  return llmResponse;
+  return await recommendBooksFlow(input);
 }
 
 const recommendBooksPrompt = ai.definePrompt({
@@ -51,7 +50,7 @@ const recommendBooksPrompt = ai.definePrompt({
       For each book, provide the title, the author, and a compelling, one-sentence reason why this specific user would enjoy it.
       Do not recommend books that are already in the library catalog.
       Here are the user's preferences: {{{readingPreferences}}}
-      Return your recommendations in a structured JSON format.`,
+      Return your recommendations in the structured JSON format specified.`,
 });
 
 const recommendBooksFlow = ai.defineFlow(
