@@ -1,7 +1,7 @@
 
 'use server';
 
-import { recommendBooks } from '@/ai/flows/recommend-books';
+import { recommendBooks, type RecommendBooksOutput } from '@/ai/flows/recommend-books';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
@@ -33,7 +33,7 @@ const recommendationSchema = z.object({
 
 export type RecommendationState = {
   message?: string;
-  recommendations?: string;
+  recommendations?: RecommendBooksOutput['recommendations'];
   errors?: {
     borrowingHistory?: string[];
     readingPreferences?: string[];
@@ -55,6 +55,9 @@ export async function getRecommendations(prevState: RecommendationState, formDat
   
   try {
     const result = await recommendBooks(validatedFields.data);
+    if (!result || !result.recommendations || result.recommendations.length === 0) {
+        return { message: 'The AI could not generate recommendations at this time. Please try again later.' };
+    }
     return { recommendations: result.recommendations, message: 'Here are your recommendations!' };
   } catch (e) {
     console.error(e);

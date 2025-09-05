@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useActionState } from 'react';
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Wand2, Loader2 } from 'lucide-react';
+import { Wand2, Loader2, BookHeart } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
@@ -31,7 +32,7 @@ export function RecommendationEngine() {
 
   useEffect(() => {
     if (state.message) {
-      if (state.errors || state.message.includes('error')) {
+      if (state.errors || state.message.includes('error') || state.message.includes('try again')) {
          toast({
           variant: "destructive",
           title: "An Error Occurred",
@@ -39,7 +40,7 @@ export function RecommendationEngine() {
         });
       }
     }
-    if (state.recommendations) {
+    if (state.recommendations && state.recommendations.length > 0) {
         formRef.current?.reset();
     }
   }, [state, toast]);
@@ -86,14 +87,21 @@ export function RecommendationEngine() {
         </CardFooter>
       </form>
       
-      {state.recommendations && (
+      {state.recommendations && state.recommendations.length > 0 && (
         <>
           <Separator className="mx-6 my-0" />
           <CardContent className="pt-6">
             <h3 className="font-headline text-lg font-semibold mb-2">Our Suggestions for You:</h3>
-            <div className="text-sm bg-muted p-4 rounded-md space-y-2 text-muted-foreground border">
-                {state.recommendations.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                    <p key={i}>{line}</p>
+            <div className="space-y-4">
+                {state.recommendations.map((rec, i) => (
+                    <div key={i} className="flex gap-4 items-start bg-muted/50 p-3 rounded-md border">
+                        <BookHeart className="h-5 w-5 mt-1 text-primary/80 flex-shrink-0" />
+                        <div>
+                            <p className="font-semibold text-sm text-foreground">{rec.title}</p>
+                            <p className="text-xs text-muted-foreground italic mb-1">by {rec.author}</p>
+                            <p className="text-sm text-muted-foreground">{rec.reason}</p>
+                        </div>
+                    </div>
                 ))}
             </div>
           </CardContent>
