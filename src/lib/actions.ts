@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -18,9 +19,10 @@ export async function getBooksAction(): Promise<Book[]> {
       .toArray();
 
     return books.map((book) => {
-      const { _id, ...rest } = book;
+      const { _id, borrowedBy, ...rest } = book;
       return {
         id: _id.toString(),
+        borrowedBy: borrowedBy ? borrowedBy.toString() : null,
         ...rest,
       } as unknown as Book;
     });
@@ -41,9 +43,10 @@ export async function getMyBooksAction(userId: string): Promise<Book[]> {
             .toArray();
 
         return books.map((book) => {
-            const { _id, ...rest } = book;
+            const { _id, borrowedBy, ...rest } = book;
             return {
                 id: _id.toString(),
+                borrowedBy: borrowedBy ? borrowedBy.toString() : null,
                 ...rest,
             } as unknown as Book;
         });

@@ -9,7 +9,6 @@ import { ExternalLink, Bookmark, BookCheck, BookX, Loader2 } from 'lucide-react'
 import { borrowBook, returnBook, reserveBook } from '@/app/actions';
 import { useTransition, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { ObjectId } from 'mongodb';
 
 export type Book = {
   id: string;
@@ -24,7 +23,7 @@ export type Book = {
   copies: number;
   available: number;
   genre: string;
-  borrowedBy: ObjectId | null;
+  borrowedBy: string | null;
 };
 
 type User = {
