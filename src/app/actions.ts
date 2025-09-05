@@ -30,12 +30,12 @@ async function generateUniqueUserId(): Promise<string> {
 
 
 const recommendationSchema = z.object({
-  readingPreferences: z.string().min(3, { message: 'Please enter at least 3 characters to search.' }),
+  readingPreferences: z.string().min(10, { message: 'Please describe your preferences in at least 10 characters.' }),
 });
 
 export type RecommendationState = {
   message?: string;
-  recommendations?: Book[];
+  recommendations?: RecommendBooksOutput['recommendations'];
   errors?: {
     readingPreferences?: string[];
   };
@@ -54,23 +54,19 @@ export async function getRecommendations(prevState: RecommendationState, formDat
   }
   
   try {
-    const allBooks = await getBooksAction();
-    const searchKeywords = validatedFields.data.readingPreferences.toLowerCase().split(' ').filter(kw => kw.length > 0);
-
-    const matchedBooks = allBooks.filter(book => {
-        const bookText = `${book.title.toLowerCase()} ${book.author.toLowerCase()} ${book.genre.toLowerCase()}`;
-        return searchKeywords.every(kw => bookText.includes(kw));
+    const aiResponse = await recommendBooks({
+      readingPreferences: validatedFields.data.readingPreferences,
     });
-
-    if (matchedBooks.length === 0) {
-        return { message: 'No books found matching your keywords. Please try a different search.' };
+    
+    if (!aiResponse?.recommendations || aiResponse.recommendations.length === 0) {
+      return { message: "The AI couldn't generate recommendations based on your preferences. Please try being more specific." };
     }
 
-    return { recommendations: matchedBooks, message: `Found ${matchedBooks.length} matching books!` };
+    return { recommendations: aiResponse.recommendations, message: 'Here are your AI-powered recommendations!' };
 
   } catch (e) {
     console.error(e);
-    return { message: 'An unexpected error occurred while searching for books.' };
+    return { message: 'An unexpected error occurred while getting recommendations from the AI.' };
   }
 }
 
