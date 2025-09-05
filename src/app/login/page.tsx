@@ -34,13 +34,13 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (state?.userId && state?.userName && state?.role) {
+    if (state?.userId && state?.userName && state?.role && state?.userEmail) {
       toast({
         title: 'Login Successful',
         description: 'You are now logged in.',
       });
       // Store user info in localStorage for client-side session management
-      localStorage.setItem('user', JSON.stringify({ id: state.userId, name: state.userName, role: state.role, email: (formRef.current?.elements.namedItem('email') as HTMLInputElement).value }));
+      localStorage.setItem('user', JSON.stringify({ id: state.userId, name: state.userName, role: state.role, email: state.userEmail }));
       router.push(`/my-books`);
     } else if (state?.message && state.errors) {
        // Errors are handled by the alerts in the form now
@@ -102,3 +102,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

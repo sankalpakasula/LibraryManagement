@@ -136,6 +136,7 @@ export type LoginState = {
   message?: string;
   userId?: string;
   userName?: string;
+  userEmail?: string;
   role?: 'admin' | 'user';
   errors?: {
     email?: string[];
@@ -193,6 +194,7 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
       message: 'Login successful!',
       userId: userId,
       userName: user.name,
+      userEmail: user.email,
       role: role,
     };
 
@@ -433,11 +435,14 @@ export async function reserveBook(bookId: string, userId: string) {
     revalidatePath('/');
     revalidatePath('/dashboard');
     revalidatePath('/my-books');
-  } catch (e) {
+  } catch (e)
+   {
     console.error("Error reserving book:", e);
      throw new Error((e as Error).message);
   }
 }
+
+    
 
     
 
