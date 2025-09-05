@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useActionState, useEffect, useRef } from 'react';
@@ -39,7 +40,7 @@ export default function LoginPage() {
         description: 'You are now logged in.',
       });
       // Store user info in localStorage for client-side session management
-      localStorage.setItem('user', JSON.stringify({ id: state.userId, name: state.userName, role: state.role }));
+      localStorage.setItem('user', JSON.stringify({ id: state.userId, name: state.userName, role: state.role, email: (formRef.current?.elements.namedItem('email') as HTMLInputElement).value }));
       router.push(`/my-books`);
     } else if (state?.message && state.errors) {
        // Errors are handled by the alerts in the form now

@@ -1,16 +1,20 @@
+
 'use client';
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "./ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { LayoutDashboard, LogIn, UserPlus, Menu, Library, BookUser, LogOut, UserCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { LayoutDashboard, LogIn, UserPlus, Menu, Library, BookUser, LogOut, UserCircle, Mail, KeySquare } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Separator } from "./ui/separator";
 
 type User = {
     id: string;
     name: string;
+    email: string;
     role: 'admin' | 'user';
 }
 
@@ -34,24 +38,30 @@ export function Navbar() {
     setIsOpen(false);
   };
   
-  const NavLinks = () => (
-    <>
-       <Button variant="ghost" asChild>
-        <Link href="/my-books">
-          <BookUser />
-          My Books
-        </Link>
-      </Button>
-      {user?.role === 'admin' && (
-        <Button variant="ghost" asChild>
-          <Link href="/dashboard">
-            <LayoutDashboard />
-            Admin
-          </Link>
-        </Button>
-      )}
-    </>
-  );
+  const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
+    const commonClasses = "flex items-center gap-3 p-2 rounded-md hover:bg-muted";
+    const sheetCloseProps = inSheet ? { asChild: true } : {};
+
+    return (
+        <>
+            <Button variant="ghost" asChild>
+                <Link href="/my-books" {...sheetCloseProps} className={inSheet ? commonClasses : ''}>
+                    <BookUser />
+                    My Books
+                </Link>
+            </Button>
+            {user?.role === 'admin' && (
+                <Button variant="ghost" asChild>
+                    <Link href="/dashboard" {...sheetCloseProps} className={inSheet ? commonClasses : ''}>
+                        <LayoutDashboard />
+                        Admin
+                    </Link>
+                </Button>
+            )}
+        </>
+    );
+};
+
 
   const AuthButtons = () => (
      <>
@@ -83,33 +93,59 @@ export function Navbar() {
           {user ? (
             <>
               <NavLinks />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <Popover>
+                <PopoverTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
                      <UserCircle className="h-5 w-5 text-primary" />
                     <span className="text-sm font-medium text-muted-foreground">{user.name}</span>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/my-books')}>
-                    <BookUser className="mr-2 h-4 w-4" />
-                    <span>My Books</span>
-                  </DropdownMenuItem>
-                   {user.role === 'admin' && (
-                     <DropdownMenuItem onClick={() => router.push('/dashboard')}>
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        <span>Admin</span>
-                      </DropdownMenuItem>
-                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </PopoverTrigger>
+                <PopoverContent className="w-64">
+                    <div className="grid gap-4">
+                        <div className="space-y-2">
+                            <h4 className="font-medium leading-none">My Account</h4>
+                            <p className="text-sm text-muted-foreground">
+                                Your personal account details.
+                            </p>
+                        </div>
+                        <div className="grid gap-2">
+                            <div className="flex items-center gap-2">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="grid gap-0.5">
+                                    <div className="font-semibold">{user.name}</div>
+                                    <div className="flex items-center text-xs text-muted-foreground">
+                                        <Mail className="mr-1.5 h-3 w-3"/>
+                                        {user.email}
+                                    </div>
+                                    <div className="flex items-center text-xs text-muted-foreground">
+                                       <KeySquare className="mr-1.5 h-3 w-3" />
+                                       User ID: {user.id}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <Separator />
+                        <div className="flex flex-col space-y-1">
+                             <Button variant="ghost" size="sm" className="justify-start" onClick={() => router.push('/my-books')}>
+                                <BookUser className="mr-2 h-4 w-4" />
+                                <span>My Books</span>
+                            </Button>
+                             {user.role === 'admin' && (
+                                <Button variant="ghost" size="sm" className="justify-start" onClick={() => router.push('/dashboard')}>
+                                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                                    <span>Admin</span>
+                                </Button>
+                            )}
+                            <Button variant="ghost" size="sm" className="justify-start text-destructive hover:text-destructive" onClick={handleLogout}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Logout</span>
+                            </Button>
+                        </div>
+                    </div>
+                </PopoverContent>
+              </Popover>
             </>
           ) : (
             <AuthButtons />
@@ -141,19 +177,8 @@ export function Navbar() {
                         <span className="text-sm font-semibold">{user.name}</span>
                       </div>
                        <SheetClose asChild>
-                        <Link href="/my-books" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
-                          <BookUser />
-                          My Books
-                        </Link>
-                      </SheetClose>
-                      {user.role === 'admin' && (
-                        <SheetClose asChild>
-                          <Link href="/dashboard" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
-                            <LayoutDashboard />
-                            Admin
-                          </Link>
-                        </SheetClose>
-                      )}
+                         <NavLinks inSheet={true} />
+                       </SheetClose>
                        <Button onClick={handleLogout} variant="ghost" className="flex items-center gap-3 p-2 justify-start hover:bg-muted">
                           <LogOut />
                           Logout
