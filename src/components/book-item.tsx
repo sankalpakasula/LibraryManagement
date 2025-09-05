@@ -9,6 +9,7 @@ import { ExternalLink, Bookmark, BookCheck, BookX, Loader2 } from 'lucide-react'
 import { borrowBook, returnBook, reserveBook } from '@/app/actions';
 import { useTransition, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { getMyBooksAction } from '@/lib/actions';
 
 export type Book = {
   id: string;
@@ -23,7 +24,6 @@ export type Book = {
   copies: number;
   available: number;
   genre: string;
-  borrowedBy: string | null;
 };
 
 type User = {
@@ -34,16 +34,24 @@ type User = {
 export function BookItem({ book }: { book: Book }) {
   const [isPending, startTransition] = useTransition();
   const [user, setUser] = useState<User | null>(null);
+  const [userBooks, setUserBooks] = useState<string[]>([]);
   const { toast } = useToast();
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        fetchUserBooks(parsedUser.id);
     }
   }, []);
 
-  const handleAction = async (action: (id: string, userId?: string) => Promise<void>, id: string, successMessage: string, errorMessage: string) => {
+  const fetchUserBooks = async (userId: string) => {
+      const books = await getMyBooksAction(userId);
+      setUserBooks(books.map(b => b.id));
+  }
+
+  const handleAction = async (action: (bookId: string, userId: string) => Promise<void>, bookId: string, successMessage: string, errorMessage: string) => {
     if (!user?.id) {
         toast({
             variant: 'destructive',
@@ -54,27 +62,29 @@ export function BookItem({ book }: { book: Book }) {
     }
     startTransition(async () => {
       try {
-        await action(id, user.id);
+        await action(bookId, user.id);
         toast({
           title: 'Success',
           description: successMessage,
         });
+        // Refetch user's books to update the button state
+        fetchUserBooks(user.id);
       } catch (error) {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: errorMessage,
+          description: (error as Error).message || errorMessage,
         });
       }
     });
   };
 
   const isAvailable = book.available > 0;
-  const isCheckedOutByCurrentUser = user && book.borrowedBy?.toString() === user.id;
-  const isReserved = book.status === 'Reserved';
+  const isCheckedOutByCurrentUser = userBooks.includes(book.id);
+  const isReservedBySomeone = book.status === 'Reserved';
 
   const getStatusBadge = () => {
-    if (isReserved) {
+    if (isReservedBySomeone) {
       return <Badge variant="destructive" className="text-xs">Reserved</Badge>;
     }
     if (isAvailable) {
@@ -102,7 +112,7 @@ export function BookItem({ book }: { book: Book }) {
           size="sm" 
           className="text-xs h-8"
           disabled={isPending}
-          onClick={() => handleAction(returnBook, book.id, `You returned "${book.title}".`, "Failed to return book.")}
+          onClick={() => handleAction((bookId, userId) => returnBook(bookId, userId), book.id, `You returned "${book.title}".`, "Failed to return book.")}
         >
           {buttonContent(isPending, BookCheck, 'Return')}
         </Button>
@@ -123,7 +133,7 @@ export function BookItem({ book }: { book: Book }) {
       );
     }
 
-    if (!isAvailable && !isReserved && !isCheckedOutByCurrentUser) { // All copies checked out, not reserved yet
+    if (!isAvailable && !isReservedBySomeone) {
        return (
          <Button 
             variant="destructive" 
@@ -137,7 +147,7 @@ export function BookItem({ book }: { book: Book }) {
       );
     }
 
-    if (isReserved) {
+    if (isReservedBySomeone && !isCheckedOutByCurrentUser) {
        return (
         <Button variant="outline" size="sm" disabled className="text-xs h-8">
           <BookX className="mr-1 h-3.5 w-3.5" />
@@ -168,7 +178,9 @@ export function BookItem({ book }: { book: Book }) {
       <CardContent className="p-3 pt-1 flex-grow">
         <div className="flex justify-between items-center">
           {getStatusBadge()}
-           <p className="text-xs text-muted-foreground">{book.available} / {book.copies} left</p>
+          {!user && (
+             <p className="text-xs text-muted-foreground">{book.available} / {book.copies} left</p>
+          )}
         </div>
       </CardContent>
       <CardFooter className="p-3 pt-0">

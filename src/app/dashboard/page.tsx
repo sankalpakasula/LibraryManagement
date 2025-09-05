@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useActionState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Navbar } from "@/components/navbar";
-import { getBooksAction } from "@/lib/actions";
+import { getBooksAction, getBorrowsAndReservationsAction } from "@/lib/actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { Book } from "@/components/book-item";
@@ -19,6 +19,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const initialState: AddBookState = {};
 
+type DashboardBook = Book & {
+    borrowedBy?: string;
+    reservedBy?: string[];
+};
+
+
 function AddBookSubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -29,7 +35,7 @@ function AddBookSubmitButton() {
   );
 }
 
-const BookTable = ({ books }: { books: Book[] }) => (
+const BookTable = ({ books }: { books: DashboardBook[] }) => (
   <ScrollArea className="w-full whitespace-nowrap rounded-lg border border-primary/10">
      <Table>
       <TableHeader>
@@ -39,7 +45,7 @@ const BookTable = ({ books }: { books: Book[] }) => (
           <TableHead>Status</TableHead>
           <TableHead>Total Copies</TableHead>
           <TableHead>Available Copies</TableHead>
-          <TableHead>User ID</TableHead>
+          <TableHead>User ID (Borrowed)</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -57,7 +63,7 @@ const BookTable = ({ books }: { books: Book[] }) => (
             </TableCell>
             <TableCell>{book.copies}</TableCell>
             <TableCell>{book.available}</TableCell>
-            <TableCell>{book.borrowedBy?.toString() || 'N/A'}</TableCell>
+            <TableCell>{book.borrowedBy || 'N/A'}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -67,7 +73,7 @@ const BookTable = ({ books }: { books: Book[] }) => (
 
 
 export default function Dashboard() {
-  const [books, setBooks] = useState<Book[]>([]);
+  const [books, setBooks] = useState<DashboardBook[]>([]);
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
@@ -76,11 +82,30 @@ export default function Dashboard() {
 
   const [state, formAction] = useActionState(addBook, initialState);
 
-  useEffect(() => {
+  const fetchData = async () => {
     startTransition(async () => {
-        const allBooks = await getBooksAction();
-        setBooks(allBooks);
+        const [allBooks, details] = await Promise.all([
+          getBooksAction(),
+          getBorrowsAndReservationsAction()
+        ]);
+        
+        const booksWithDetails = allBooks.map(book => {
+          const borrowedDetail = details.borrows.find(b => b.bookId === book.id);
+          const reservedDetails = details.reservations.filter(r => r.bookId === book.id);
+          
+          return {
+            ...book,
+            borrowedBy: borrowedDetail ? borrowedDetail.userId : undefined,
+            reservedBy: reservedDetails.map(r => r.userId)
+          }
+        });
+
+        setBooks(booksWithDetails);
     });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [state]); 
 
   useEffect(() => {
@@ -102,7 +127,7 @@ export default function Dashboard() {
     }
   }, [state, toast]);
   
-  const checkedOutBooks = books.filter(book => book.status === 'Checked Out');
+  const checkedOutBooks = books.filter(book => book.status === 'Checked Out' || book.borrowedBy);
   const reservedBooks = books.filter(book => book.status === 'Reserved');
 
   return (

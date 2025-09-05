@@ -234,71 +234,156 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
 export async function borrowBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
-    const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
+    const bookObjectId = new ObjectId(bookId);
+    const userObjectId = new ObjectId(userId);
+    
+    const book = await db.collection('books').findOne({ _id: bookObjectId });
 
     if (!book || book.available <= 0) {
       throw new Error("Book is not available for borrowing.");
     }
     
+    // Check if any copy of this book is already borrowed by this user
+    const userAlreadyHasBook = await db.collection('borrows').findOne({ 
+      bookId: bookObjectId, 
+      userId: userObjectId 
+    });
+
+    if (userAlreadyHasBook) {
+      throw new Error("You have already borrowed a copy of this book.");
+    }
+
     const newAvailable = book.available - 1;
     const newStatus = newAvailable > 0 ? 'Available' : 'Checked Out';
 
+    // Update book collection
     await db.collection('books').updateOne(
-      { _id: new ObjectId(bookId) },
-      { $set: { available: newAvailable, status: newStatus, borrowedBy: new ObjectId(userId) } }
+      { _id: bookObjectId },
+      { $set: { available: newAvailable, status: newStatus } }
     );
+    
+    // Create a record in a new 'borrows' collection
+    await db.collection('borrows').insertOne({
+      bookId: bookObjectId,
+      userId: userObjectId,
+      borrowedAt: new Date(),
+    });
     
     revalidatePath('/');
     revalidatePath('/dashboard');
     revalidatePath('/my-books');
   } catch (e) {
     console.error("Error borrowing book:", e);
-    // In a real app, you'd return a proper error state.
+    // Propagate the specific error message
+    throw new Error((e as Error).message);
   }
 }
 
-export async function returnBook(bookId: string) {
+export async function returnBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
-    const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
+    const bookObjectId = new ObjectId(bookId);
+    const userObjectId = new ObjectId(userId);
 
-    if (!book || book.available >= book.copies) {
-      throw new Error("Cannot return a book that is already fully stocked.");
+    const book = await db.collection('books').findOne({ _id: bookObjectId });
+
+    if (!book) {
+      throw new Error("Book not found.");
     }
 
-    const newAvailable = book.available + 1;
-    const newStatus = newAvailable > 0 ? 'Available' : 'Checked Out';
+    // Check if there is a borrow record
+    const borrowRecord = await db.collection('borrows').findOne({
+      bookId: bookObjectId,
+      userId: userObjectId,
+    });
+    
+    if (!borrowRecord) {
+      // This case might happen if data is inconsistent, but it's good to handle
+      throw new Error("You don't seem to have this book borrowed.");
+    }
 
+    // Remove the borrow record
+    await db.collection('borrows').deleteOne({ _id: borrowRecord._id });
+    
+    const newAvailable = book.available + 1;
+    // Check for reservations to determine the new status
+    const reservation = await db.collection('reservations').findOne({ bookId: bookObjectId }, { sort: { reservedAt: 1 } });
+    let newStatus = newAvailable > 0 ? 'Available' : 'Checked Out';
+    
+    if (reservation) {
+      // If there was a reservation, assign the book to the reserving user
+      newStatus = 'Checked Out';
+      await db.collection('borrows').insertOne({
+        bookId: bookObjectId,
+        userId: reservation.userId,
+        borrowedAt: new Date(),
+      });
+      await db.collection('reservations').deleteOne({ _id: reservation._id });
+      // Don't increment available count as it goes to the next person
+    } else {
+       await db.collection('books').updateOne(
+        { _id: bookObjectId },
+        { $inc: { available: 1 } }
+      );
+    }
+    
     await db.collection('books').updateOne(
-      { _id: new ObjectId(bookId) },
-      { $set: { available: newAvailable, status: newStatus, borrowedBy: null } }
+        { _id: bookObjectId },
+        { $set: { status: book.available + 1 > 0 ? 'Available' : 'Checked Out' } }
     );
+
     revalidatePath('/');
     revalidatePath('/dashboard');
     revalidatePath('/my-books');
   } catch (e) {
     console.error("Error returning book:", e);
+    throw new Error((e as Error).message);
   }
 }
+
 
 export async function reserveBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
-    const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
+    const bookObjectId = new ObjectId(bookId);
+    const userObjectId = new ObjectId(userId);
+    
+    const book = await db.collection('books').findOne({ _id: bookObjectId });
 
-    if (!book || book.available > 0) {
+    if (!book) {
+        throw new Error("Book not found.");
+    }
+
+    if (book.available > 0) {
       throw new Error("Cannot reserve a book that is currently available.");
     }
 
-    // In a real system, reservations would be a queue. For now, we'll just mark it.
+    // Check if user already has it borrowed or reserved
+    const existingBorrow = await db.collection('borrows').findOne({ bookId: bookObjectId, userId: userObjectId });
+    if(existingBorrow) {
+        throw new Error("You have already borrowed this book.");
+    }
+    const existingReservation = await db.collection('reservations').findOne({ bookId: bookObjectId, userId: userObjectId });
+     if(existingReservation) {
+        throw new Error("You have already reserved this book.");
+    }
+
+    await db.collection('reservations').insertOne({
+        bookId: bookObjectId,
+        userId: userObjectId,
+        reservedAt: new Date(),
+    });
+
     await db.collection('books').updateOne(
-      { _id: new ObjectId(bookId) },
-      { $set: { status: 'Reserved', borrowedBy: new ObjectId(userId) } }
+      { _id: bookObjectId },
+      { $set: { status: 'Reserved' } }
     );
+    
     revalidatePath('/');
     revalidatePath('/dashboard');
     revalidatePath('/my-books');
   } catch (e) {
     console.error("Error reserving book:", e);
+     throw new Error((e as Error).message);
   }
 }

@@ -19,10 +19,9 @@ export async function getBooksAction(): Promise<Book[]> {
       .toArray();
 
     return books.map((book) => {
-      const { _id, borrowedBy, ...rest } = book;
+      const { _id, ...rest } = book;
       return {
         id: _id.toString(),
-        borrowedBy: borrowedBy ? borrowedBy.toString() : null,
         ...rest,
       } as unknown as Book;
     });
@@ -36,17 +35,21 @@ export async function getMyBooksAction(userId: string): Promise<Book[]> {
     if (!userId) return [];
     try {
         const { db } = await connectToDatabase();
+        const userObjectId = new ObjectId(userId);
+
+        const borrows = await db.collection('borrows').find({ userId: userObjectId }).toArray();
+        const bookIds = borrows.map(b => b.bookId);
+
         const books = await db
             .collection("books")
-            .find({ borrowedBy: new ObjectId(userId) })
+            .find({ _id: { $in: bookIds } })
             .sort({ title: 1 })
             .toArray();
 
         return books.map((book) => {
-            const { _id, borrowedBy, ...rest } = book;
+            const { _id, ...rest } = book;
             return {
                 id: _id.toString(),
-                borrowedBy: borrowedBy ? borrowedBy.toString() : null,
                 ...rest,
             } as unknown as Book;
         });
