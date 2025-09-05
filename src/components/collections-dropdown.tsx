@@ -18,11 +18,12 @@ const collections = [
   "Business",
   "Science",
   "History",
-  "Fantasy",
+  "Mythical",
   "Fiction",
   "Science Fiction",
   "Biography",
   "Mystery",
+  "Philosophical",
 ];
 
 type CollectionsDropdownProps = {
@@ -37,9 +38,9 @@ export function CollectionsDropdown({ onCollectionChange }: CollectionsDropdownP
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Collections</SelectLabel>
+          <SelectLabel>Genres</SelectLabel>
           <SelectItem value="All">All Collections</SelectItem>
-          {collections.map((collection) => (
+          {collections.sort().map((collection) => (
             <SelectItem key={collection} value={collection}>
               {collection}
             </SelectItem>

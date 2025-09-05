@@ -23,7 +23,7 @@ export function BookList({ collection }: { collection: string }) {
     if (collection === 'All') {
       return books;
     }
-    return books.filter(book => book.category === collection);
+    return books.filter(book => book.genre === collection);
   }, [books, collection]);
 
   if (loading) {

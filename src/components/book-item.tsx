@@ -17,7 +17,7 @@ export type Book = {
   dataAiHint: string;
   copies: number;
   available: number;
-  category?: string;
+  genre?: string;
 };
 
 export function BookItem({ book }: { book: Book }) {
