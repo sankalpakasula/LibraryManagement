@@ -27,7 +27,7 @@ const initialBooks = [
   
   // Other genres for variety
   { title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", copies: 11, genre: "History" },
-  { title: "Dune", author: "Frank Herbert", copies: 9, genre: "Mythical" },
+  { title: "Dune", author: "Frank Herbert", copies: 9, genre: "Science Fiction" },
   { title: "1984", author: "George Orwell", copies: 13, genre: "Fiction" },
   { title: "The Martian", author: "Andy Weir", copies: 8, genre: "Science Fiction" },
   { title: "Steve Jobs", author: "Walter Isaacson", copies: 7, genre: "Biography" },
@@ -53,9 +53,9 @@ export async function seedDatabase() {
         ...book,
         available: book.copies,
         status: 'Available',
-        imageUrl: `https://picsum.photos/seed/${encodeURIComponent(book.title)}/200/300`,
-        width: 200,
-        height: 300,
+        imageUrl: `https://picsum.photos/seed/${encodeURIComponent(book.title)}/300/400`,
+        width: 300,
+        height: 400,
         dataAiHint: 'book cover',
         dueDate: null,
       }));
