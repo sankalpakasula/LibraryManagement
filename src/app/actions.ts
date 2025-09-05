@@ -93,18 +93,16 @@ export async function signupUser(prevState: SignupState, formData: FormData): Pr
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const newUserId = new ObjectId();
 
-    const result = await usersCollection.insertOne({
+    await usersCollection.insertOne({
+      _id: newUserId,
+      userId: newUserId.toString(),
       name,
       email,
       password: hashedPassword,
       createdAt: new Date(),
     });
-
-    await usersCollection.updateOne(
-        { _id: result.insertedId },
-        { $set: { userId: result.insertedId.toString() } }
-    );
 
     return { message: 'Signup successful! You can now log in.' };
   } catch (e) {
@@ -396,4 +394,5 @@ export async function reserveBook(bookId: string, userId: string) {
      throw new Error((e as Error).message);
   }
 }
+
 
