@@ -95,11 +95,10 @@ export async function signupUser(prevState: SignupState, formData: FormData): Pr
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const newUserId = new ObjectId();
-    const userIdString = newUserId.toString();
-
+    
     await usersCollection.insertOne({
       _id: newUserId,
-      userId: userIdString,
+      userId: newUserId.toString(),
       name,
       email,
       password: hashedPassword,
