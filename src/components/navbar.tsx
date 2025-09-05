@@ -95,8 +95,10 @@ export function Navbar() {
             <>
               <Button variant="ghost" asChild>
                 <Link href="/account" className="flex items-center gap-2">
-                   <UserCircle className="h-5 w-5 text-primary" />
-                   My Account
+                   <Avatar className="h-6 w-6">
+                       <AvatarFallback className="text-xs">{user.name.charAt(0)}</AvatarFallback>
+                   </Avatar>
+                   {user.name}
                 </Link>
               </Button>
               <Button variant="outline" size="sm" onClick={handleLogout}>
