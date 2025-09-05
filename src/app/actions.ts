@@ -114,6 +114,7 @@ const loginSchema = z.object({
 export type LoginState = {
   message?: string;
   userId?: string;
+  userName?: string;
   errors?: {
     email?: string[];
     password?: string[];
@@ -154,7 +155,8 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
     
     return {
       message: 'Login successful!',
-      userId: user._id.toString()
+      userId: user._id.toString(),
+      userName: user.name,
     };
 
   } catch (e) {
@@ -211,7 +213,7 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
       height: 400,
       dataAiHint: 'book cover',
       dueDate: null,
-      genre,
+      genre: genre || "Uncategorized",
       borrowedBy: null,
     });
 

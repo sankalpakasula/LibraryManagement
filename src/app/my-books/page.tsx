@@ -11,9 +11,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function MyBooksContent() {
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
   const [myBooks, setMyBooks] = useState<Book[]>([]);
   const [isPending, startTransition] = useTransition();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Attempt to get user from localStorage for a more persistent session
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserId(user.id);
+    } else {
+      // Fallback to query param if needed
+      setUserId(searchParams.get('userId'));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (userId) {

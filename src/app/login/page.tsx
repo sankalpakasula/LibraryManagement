@@ -33,12 +33,14 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (state?.userId) {
+    if (state?.userId && state?.userName) {
       toast({
         title: 'Login Successful',
         description: 'You are now logged in.',
       });
-      router.push(`/my-books?userId=${state.userId}`);
+      // Store user info in localStorage for client-side session management
+      localStorage.setItem('user', JSON.stringify({ id: state.userId, name: state.userName }));
+      router.push(`/my-books`);
     } else if (state?.message && state.errors) {
        // Errors are handled by the alerts in the form now
        // But we can keep a general toast for unexpected server errors

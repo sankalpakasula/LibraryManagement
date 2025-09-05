@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Bookmark, BookCheck, BookX, Loader2 } from 'lucide-react';
 import { borrowBook, returnBook, reserveBook } from '@/app/actions';
-import { useTransition } from 'react';
+import { useTransition, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ObjectId } from 'mongodb';
 
@@ -27,18 +27,35 @@ export type Book = {
   borrowedBy: ObjectId | null;
 };
 
-// This is a placeholder for a real authentication system
-const FAKE_USER_ID = '663a8b4a7e36c5e21a8c5478';
+type User = {
+    id: string;
+    name: string;
+}
 
 export function BookItem({ book }: { book: Book }) {
   const [isPending, startTransition] = useTransition();
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const handleAction = async (action: (id: string, userId?: string) => Promise<void>, id: string, successMessage: string, errorMessage: string) => {
+    if (!user?.id) {
+        toast({
+            variant: 'destructive',
+            title: 'Please log in',
+            description: 'You must be logged in to perform this action.'
+        });
+        return;
+    }
     startTransition(async () => {
       try {
-        // In a real app, you would get the current user's ID from a session
-        await action(id, FAKE_USER_ID);
+        await action(id, user.id);
         toast({
           title: 'Success',
           description: successMessage,
@@ -54,7 +71,7 @@ export function BookItem({ book }: { book: Book }) {
   };
 
   const isAvailable = book.available > 0;
-  const isCheckedOutByCurrentUser = book.borrowedBy?.toString() === FAKE_USER_ID;
+  const isCheckedOutByCurrentUser = user && book.borrowedBy?.toString() === user.id;
   const isReserved = book.status === 'Reserved';
 
   const getStatusBadge = () => {
@@ -74,6 +91,10 @@ export function BookItem({ book }: { book: Book }) {
         {text}
       </>
     );
+    
+    if (!user) {
+        return null;
+    }
 
     if (isCheckedOutByCurrentUser) {
        return (
