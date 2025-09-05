@@ -32,7 +32,7 @@ type CollectionsDropdownProps = {
 export function CollectionsDropdown({ onCollectionChange }: CollectionsDropdownProps) {
   return (
     <Select onValueChange={onCollectionChange} defaultValue="All">
-      <SelectTrigger className="w-[280px]">
+      <SelectTrigger className="w-full sm:w-[280px]">
         <SelectValue placeholder="Browse Collections" />
       </SelectTrigger>
       <SelectContent>

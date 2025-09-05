@@ -32,10 +32,10 @@ export function BookList({ collection }: { collection: string }) {
         <h2 className="text-xl font-headline font-semibold mb-4 text-primary/90">
           In the Catalog
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {Array.from({ length: 12 }).map((_, index) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, index) => (
              <div key={index} className="flex flex-col space-y-3">
-              <Skeleton className="h-[200px] w-full rounded-md" />
+              <Skeleton className="h-[150px] sm:h-[200px] w-full rounded-md" />
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-2/3" />
@@ -53,7 +53,7 @@ export function BookList({ collection }: { collection: string }) {
         {collection === 'All' ? 'In the Catalog' : `Collection: ${collection}`}
       </h2>
       {filteredBooks.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredBooks.map((book) => (
             <BookItem key={book.id} book={book} />
           ))}

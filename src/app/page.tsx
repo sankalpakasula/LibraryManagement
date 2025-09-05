@@ -29,9 +29,9 @@ export default function Home() {
               <SearchBar />
 
               <div className="mt-8">
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-4">
                   <CollectionsDropdown onCollectionChange={setSelectedCollection} />
-                  <Button variant="outline" onClick={handleShowAll}>All Books</Button>
+                  <Button variant="outline" onClick={handleShowAll} className="w-full sm:w-auto">All Books</Button>
                 </div>
                 <BookList collection={selectedCollection} />
               </div>

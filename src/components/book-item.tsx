@@ -75,14 +75,14 @@ export function BookItem({ book }: { book: Book }) {
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg dark:bg-card/60 bg-card/80 border-primary/10">
       <CardHeader className="p-3 pb-2">
-        <div className="relative aspect-[3/4] w-full mb-2 overflow-hidden rounded-sm">
+        <div className="relative aspect-[2/3] w-full mb-2 overflow-hidden rounded-sm">
           <Image
             src={book.imageUrl}
             alt={`Cover of ${book.title}`}
             fill
             className="object-cover"
             data-ai-hint={book.dataAiHint}
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            sizes="(max-width: 640px) 40vw, (max-width: 1024px) 25vw, 15vw"
           />
         </div>
         <CardTitle className="font-headline text-sm leading-tight tracking-tight h-10">{book.title}</CardTitle>
