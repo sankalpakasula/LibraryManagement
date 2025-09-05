@@ -33,14 +33,22 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (state?.message) {
-      if (state.errors) {
-        toast({
-          variant: 'destructive',
-          title: 'Login Failed',
-          description: state.message,
-        });
-      }
+    if (state?.userId) {
+      toast({
+        title: 'Login Successful',
+        description: 'You are now logged in.',
+      });
+      router.push(`/my-books?userId=${state.userId}`);
+    } else if (state?.message && state.errors) {
+       // Errors are handled by the alerts in the form now
+       // But we can keep a general toast for unexpected server errors
+        if (!state.errors.email && !state.errors.password) {
+             toast({
+                variant: 'destructive',
+                title: 'Login Failed',
+                description: state.message,
+            });
+        }
     }
   }, [state, toast, router]);
   

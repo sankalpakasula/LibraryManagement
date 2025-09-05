@@ -120,7 +120,7 @@ export type LoginState = {
   };
 };
 
-export async function loginUser(prevState: LoginState, formData: FormData) {
+export async function loginUser(prevState: LoginState, formData: FormData): Promise<LoginState> {
   const validatedFields = loginSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
@@ -152,15 +152,15 @@ export async function loginUser(prevState: LoginState, formData: FormData) {
       };
     }
     
-    // This is a conceptual representation. In a real app, you would use a secure session management solution.
-    // For this example, we'll redirect with a user ID, but this is NOT secure.
-    redirect(`/my-books?userId=${user._id.toString()}`);
+    return {
+      message: 'Login successful!',
+      userId: user._id.toString()
+    };
 
   } catch (e) {
     console.error(e);
     return { message: 'An unexpected error occurred during login.' };
   }
-  
 }
 
 const addBookSchema = z.object({
