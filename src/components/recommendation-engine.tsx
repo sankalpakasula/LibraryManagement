@@ -81,21 +81,11 @@ export function RecommendationEngine() {
           <CardContent className="pt-6">
             <h3 className="font-headline text-lg font-semibold mb-4">{state.message}</h3>
              <ScrollArea className="h-[400px] w-full">
-              <div className="space-y-4 pr-4">
-                {state.recommendations.map((book) => (
-                   <div key={book.id} className="text-sm p-2 bg-muted/50 rounded-md flex gap-4 items-center">
-                      <div className='w-1/4'>
-                        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-sm">
-                           <img src={book.imageUrl} alt={`Cover of ${book.title}`} className="object-cover w-full h-full" />
-                        </div>
-                      </div>
-                      <div className="w-3/4">
-                        <p className="font-semibold text-primary leading-tight">{book.title}</p>
-                        <p className="text-muted-foreground text-xs mb-1">by {book.author}</p>
-                      </div>
-                   </div>
-                ))}
-              </div>
+                <div className="grid grid-cols-2 gap-4 pr-4">
+                    {state.recommendations.map((book) => (
+                        <BookItem key={book.id} book={book} />
+                    ))}
+                </div>
             </ScrollArea>
           </CardContent>
         </>
