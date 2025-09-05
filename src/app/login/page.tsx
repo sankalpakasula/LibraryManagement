@@ -33,13 +33,13 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (state?.userId && state?.userName) {
+    if (state?.userId && state?.userName && state?.role) {
       toast({
         title: 'Login Successful',
         description: 'You are now logged in.',
       });
       // Store user info in localStorage for client-side session management
-      localStorage.setItem('user', JSON.stringify({ id: state.userId, name: state.userName }));
+      localStorage.setItem('user', JSON.stringify({ id: state.userId, name: state.userName, role: state.role }));
       router.push(`/my-books`);
     } else if (state?.message && state.errors) {
        // Errors are handled by the alerts in the form now

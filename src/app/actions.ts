@@ -115,6 +115,7 @@ export type LoginState = {
   message?: string;
   userId?: string;
   userName?: string;
+  role?: 'admin' | 'user';
   errors?: {
     email?: string[];
     password?: string[];
@@ -153,10 +154,13 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
       };
     }
     
+    const role = email === 'tatidheeraj@gmail.com' ? 'admin' : 'user';
+
     return {
       message: 'Login successful!',
       userId: user._id.toString(),
       userName: user.name,
+      role: role,
     };
 
   } catch (e) {

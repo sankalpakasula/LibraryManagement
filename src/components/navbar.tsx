@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 type User = {
     id: string;
     name: string;
+    role: 'admin' | 'user';
 }
 
 export function Navbar() {
@@ -54,12 +55,14 @@ export function Navbar() {
                   My Books
                 </Link>
               </Button>
-               <Button variant="ghost" asChild>
-                <Link href="/dashboard">
-                  <LayoutDashboard />
-                  Admin
-                </Link>
-              </Button>
+              {user.role === 'admin' && (
+                <Button variant="ghost" asChild>
+                  <Link href="/dashboard">
+                    <LayoutDashboard />
+                    Admin
+                  </Link>
+                </Button>
+              )}
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut />
                 Logout
@@ -113,12 +116,14 @@ export function Navbar() {
                           My Books
                         </Link>
                       </SheetClose>
-                      <SheetClose asChild>
-                        <Link href="/dashboard" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
-                          <LayoutDashboard />
-                          Admin
-                        </Link>
-                      </SheetClose>
+                      {user.role === 'admin' && (
+                        <SheetClose asChild>
+                          <Link href="/dashboard" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
+                            <LayoutDashboard />
+                            Admin
+                          </Link>
+                        </SheetClose>
+                      )}
                        <Button onClick={handleLogout} variant="ghost" className="flex items-center gap-3 p-2 justify-start hover:bg-muted">
                           <LogOut />
                           Logout
