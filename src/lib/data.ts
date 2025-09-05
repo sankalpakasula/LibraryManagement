@@ -54,6 +54,7 @@ export async function seedDatabase() {
     if (!fakeUser) {
         await usersCollection.insertOne({
             _id: fakeUserId,
+            userId: fakeUserId.toString(),
             name: 'Demo User',
             email: 'user@example.com',
             // In a real app, password would be hashed

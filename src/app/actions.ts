@@ -1,3 +1,4 @@
+
 'use server';
 
 import { recommendBooks } from '@/ai/flows/recommend-books';
@@ -81,7 +82,8 @@ export async function signupUser(prevState: SignupState, formData: FormData): Pr
 
   try {
     const { db } = await connectToDatabase();
-    const existingUser = await db.collection('users').findOne({ email });
+    const usersCollection = db.collection('users');
+    const existingUser = await usersCollection.findOne({ email });
 
     if (existingUser) {
       return {
@@ -92,12 +94,17 @@ export async function signupUser(prevState: SignupState, formData: FormData): Pr
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await db.collection('users').insertOne({
+    const result = await usersCollection.insertOne({
       name,
       email,
       password: hashedPassword,
       createdAt: new Date(),
     });
+
+    await usersCollection.updateOne(
+        { _id: result.insertedId },
+        { $set: { userId: result.insertedId.toString() } }
+    );
 
     return { message: 'Signup successful! You can now log in.' };
   } catch (e) {
@@ -330,7 +337,7 @@ export async function returnBook(bookId: string, userId: string) {
         { _id: bookObjectId },
         { 
           $inc: { available: 1 },
-          $set: { status: newAvailable > 0 ? 'Available' : 'Checked Out' }
+          $set: { status: 'Available' }
         }
       );
     }
@@ -390,3 +397,4 @@ export async function reserveBook(bookId: string, userId: string) {
      throw new Error((e as Error).message);
   }
 }
+
