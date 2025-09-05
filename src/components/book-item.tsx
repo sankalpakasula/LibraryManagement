@@ -1,9 +1,14 @@
 
+'use client';
+
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Bookmark, BookCheck, BookX } from 'lucide-react';
+import { ExternalLink, Bookmark, BookCheck, BookX, Loader2 } from 'lucide-react';
+import { borrowBook, returnBook, reserveBook } from '@/app/actions';
+import { useTransition } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export type Book = {
   id: string;
@@ -21,54 +26,97 @@ export type Book = {
 };
 
 export function BookItem({ book }: { book: Book }) {
-  // This is a placeholder. In a real app, you'd get the current user's role.
-  const userRole = 'student'; // or 'librarian'
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
-  const isAvailable = book.status === 'Available';
-  const isCheckedOut = book.status === 'Checked Out';
+  const handleAction = async (action: (id: string) => Promise<void>, id: string, successMessage: string, errorMessage: string) => {
+    startTransition(async () => {
+      try {
+        await action(id);
+        toast({
+          title: 'Success',
+          description: successMessage,
+        });
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: errorMessage,
+        });
+      }
+    });
+  };
+
+  const isAvailable = book.available > 0;
+  const isCheckedOut = book.available < book.copies && book.status !== 'Reserved';
   const isReserved = book.status === 'Reserved';
 
   const getStatusBadge = () => {
-    if (isAvailable) {
-      return <Badge variant="outline" className="border-green-600/50 text-green-700 text-xs">Available</Badge>;
-    }
-    if (isCheckedOut) {
-      return <Badge variant="secondary" className="text-xs">Checked Out</Badge>;
-    }
     if (isReserved) {
       return <Badge variant="destructive" className="text-xs">Reserved</Badge>;
     }
-    return <Badge className="text-xs">{book.status}</Badge>
+    if (isAvailable) {
+      return <Badge variant="outline" className="border-green-600/50 text-green-700 text-xs">Available</Badge>;
+    }
+    return <Badge variant="secondary" className="text-xs">Checked Out</Badge>;
   }
 
   const getActionButton = () => {
-    // In a real app, these buttons would trigger server actions to update the book's status in a database.
-    if (isAvailable) {
-      return (
-        <Button variant="outline" size="sm" className="text-xs h-8">
-          <Bookmark className="mr-1 h-3.5 w-3.5" />
-          Borrow
-        </Button>
-      );
-    }
-    if (isCheckedOut) {
-      // Typically, only a librarian or the borrowing student can return a book.
-      // We can add role checks here.
-      return (
-        <Button variant="outline" size="sm" className="text-xs h-8">
-          <BookCheck className="mr-1 h-3.5 w-3.5" />
-          Return
-        </Button>
-      );
-    }
+    const buttonContent = (pending: boolean, Icon: React.ElementType, text: string) => (
+      <>
+        {pending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Icon className="mr-1 h-3.5 w-3.5" />}
+        {text}
+      </>
+    );
+
     if (isReserved) {
-       return (
+      return (
         <Button variant="outline" size="sm" disabled className="text-xs h-8">
           <BookX className="mr-1 h-3.5 w-3.5" />
           Reserved
         </Button>
       );
     }
+    
+    if (isAvailable) {
+       return (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs h-8"
+          disabled={isPending}
+          onClick={() => handleAction(borrowBook, book.id, `"${book.title}" has been borrowed.`, "Failed to borrow book.")}
+        >
+          {buttonContent(isPending, Bookmark, 'Borrow')}
+        </Button>
+      );
+    }
+
+    if (!isAvailable && !isReserved) { // All copies checked out, not reserved yet
+       return (
+         <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs h-8"
+              disabled={isPending}
+              onClick={() => handleAction(returnBook, book.id, `One copy of "${book.title}" has been returned.`, "Failed to return book.")}
+            >
+              {buttonContent(isPending, BookCheck, 'Return')}
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="text-xs h-8"
+              disabled={isPending}
+              onClick={() => handleAction(reserveBook, book.id, `"${book.title}" has been reserved.`, "Failed to reserve book.")}
+            >
+              {buttonContent(isPending, BookX, 'Reserve')}
+            </Button>
+         </div>
+      );
+    }
+
     return null;
   }
 
@@ -91,9 +139,7 @@ export function BookItem({ book }: { book: Book }) {
       <CardContent className="p-3 pt-1 flex-grow">
         <div className="flex justify-between items-center">
           {getStatusBadge()}
-          {!isAvailable && book.dueDate && (
-            <p className="text-xs text-muted-foreground">Due: {book.dueDate}</p>
-          )}
+           <p className="text-xs text-muted-foreground">{book.available} / {book.copies} left</p>
         </div>
       </CardContent>
       <CardFooter className="p-3 pt-0">

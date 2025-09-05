@@ -2,21 +2,18 @@
 'use client';
 import { BookItem, type Book } from "./book-item";
 import { getBooksAction } from "@/lib/actions";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useTransition } from "react";
 import { Skeleton } from "./ui/skeleton";
 
 export function BookList({ collection }: { collection: string }) {
   const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    async function fetchBooks() {
-      setLoading(true);
+    startTransition(async () => {
       const allBooks = await getBooksAction();
       setBooks(allBooks);
-      setLoading(false);
-    }
-    fetchBooks();
+    });
   }, []);
 
   const filteredBooks = useMemo(() => {
@@ -26,7 +23,7 @@ export function BookList({ collection }: { collection: string }) {
     return books.filter(book => book.genre === collection);
   }, [books, collection]);
 
-  if (loading) {
+  if (isPending && books.length === 0) {
     return (
       <section id="library-catalog">
         <h2 className="text-xl font-headline font-semibold mb-4 text-primary/90">

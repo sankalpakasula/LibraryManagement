@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useActionState } from 'react';
+import { useEffect, useRef, useState, useActionState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Navbar } from "@/components/navbar";
 import { getBooksAction } from "@/lib/actions";
@@ -33,16 +33,17 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, startTransition] = useTransition();
+
 
   const [state, formAction] = useActionState(addBook, initialState);
 
   useEffect(() => {
-    async function fetchBooks() {
-      const allBooks = await getBooksAction();
-      setBooks(allBooks);
-    }
-    fetchBooks();
-  }, [state]); // Refetch books when state changes (i.e., after adding a book)
+    startTransition(async () => {
+        const allBooks = await getBooksAction();
+        setBooks(allBooks);
+    });
+  }, [state]); 
 
   useEffect(() => {
     if (state.message) {

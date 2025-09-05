@@ -6,6 +6,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { ObjectId } from 'mongodb';
 
 const recommendationSchema = z.object({
   borrowingHistory: z.string().min(10, { message: 'Please describe your borrowing history in at least 10 characters.' }),
@@ -216,5 +217,73 @@ export async function addBook(prevState: AddBookState, formData: FormData): Prom
   } catch (e) {
     console.error(e);
     return { message: 'An unexpected error occurred while adding the book.' };
+  }
+}
+
+export async function borrowBook(bookId: string) {
+  try {
+    const { db } = await connectToDatabase();
+    const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
+
+    if (!book || book.available <= 0) {
+      throw new Error("Book is not available for borrowing.");
+    }
+    
+    const newAvailable = book.available - 1;
+    const newStatus = newAvailable > 0 ? 'Available' : 'Checked Out';
+
+    await db.collection('books').updateOne(
+      { _id: new ObjectId(bookId) },
+      { $set: { available: newAvailable, status: newStatus } }
+    );
+    
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+  } catch (e) {
+    console.error("Error borrowing book:", e);
+    // In a real app, you'd return a proper error state.
+  }
+}
+
+export async function returnBook(bookId: string) {
+  try {
+    const { db } = await connectToDatabase();
+    const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
+
+    if (!book || book.available >= book.copies) {
+      throw new Error("Cannot return a book that is already fully stocked.");
+    }
+
+    const newAvailable = book.available + 1;
+    const newStatus = newAvailable > 0 ? 'Available' : 'Checked Out';
+
+    await db.collection('books').updateOne(
+      { _id: new ObjectId(bookId) },
+      { $set: { available: newAvailable, status: newStatus } }
+    );
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+  } catch (e) {
+    console.error("Error returning book:", e);
+  }
+}
+
+export async function reserveBook(bookId: string) {
+  try {
+    const { db } = await connectToDatabase();
+    const book = await db.collection('books').findOne({ _id: new ObjectId(bookId) });
+
+    if (!book || book.available > 0) {
+      throw new Error("Cannot reserve a book that is currently available.");
+    }
+
+    await db.collection('books').updateOne(
+      { _id: new ObjectId(bookId) },
+      { $set: { status: 'Reserved' } }
+    );
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+  } catch (e) {
+    console.error("Error reserving book:", e);
   }
 }
