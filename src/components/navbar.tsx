@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "./ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { LayoutDashboard, LogIn, UserPlus, Menu, Library, BookUser, LogOut, UserCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -33,6 +34,42 @@ export function Navbar() {
     setIsOpen(false);
   };
   
+  const NavLinks = () => (
+    <>
+       <Button variant="ghost" asChild>
+        <Link href="/my-books">
+          <BookUser />
+          My Books
+        </Link>
+      </Button>
+      {user?.role === 'admin' && (
+        <Button variant="ghost" asChild>
+          <Link href="/dashboard">
+            <LayoutDashboard />
+            Admin
+          </Link>
+        </Button>
+      )}
+    </>
+  );
+
+  const AuthButtons = () => (
+     <>
+       <Button variant="ghost" asChild>
+        <Link href="/login">
+          <LogIn />
+          Login
+        </Link>
+      </Button>
+      <Button variant="outline" asChild>
+        <Link href="/signup">
+           <UserPlus />
+          Sign Up
+        </Link>
+      </Button>
+    </>
+  );
+
   return (
     <nav className="bg-card/80 border-b border-primary/10 sticky top-0 z-40">
       <div className="container mx-auto flex justify-between items-center p-2">
@@ -43,47 +80,40 @@ export function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-2">
-           {user ? (
+          {user ? (
             <>
-              <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <UserCircle className="h-5 w-5 text-primary" />
-                {user.name}
-              </span>
-              <Button variant="ghost" asChild>
-                <Link href="/my-books">
-                  <BookUser />
-                  My Books
-                </Link>
-              </Button>
-              {user.role === 'admin' && (
-                <Button variant="ghost" asChild>
-                  <Link href="/dashboard">
-                    <LayoutDashboard />
-                    Admin
-                  </Link>
-                </Button>
-              )}
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut />
-                Logout
-              </Button>
+              <NavLinks />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                     <UserCircle className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium text-muted-foreground">{user.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/my-books')}>
+                    <BookUser className="mr-2 h-4 w-4" />
+                    <span>My Books</span>
+                  </DropdownMenuItem>
+                   {user.role === 'admin' && (
+                     <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Admin</span>
+                      </DropdownMenuItem>
+                   )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
-           ) : (
-            <>
-               <Button variant="ghost" asChild>
-                <Link href="/login">
-                  <LogIn />
-                  Login
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/signup">
-                   <UserPlus />
-                  Sign Up
-                </Link>
-              </Button>
-            </>
-           )}
+          ) : (
+            <AuthButtons />
+          )}
         </div>
 
         {/* Mobile Menu */}
