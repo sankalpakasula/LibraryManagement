@@ -162,21 +162,18 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
       };
     }
     
-    // Retroactively add userId if it's missing
+    // Retroactively add userId if it's missing to fix existing accounts
     if (!user.userId) {
+      const userIdString = user._id.toString();
       await usersCollection.updateOne(
         { _id: user._id },
-        { $set: { userId: user._id.toString() } }
+        { $set: { userId: userIdString } }
       );
-      // Re-fetch user to get the latest data
-      const updatedUser = await usersCollection.findOne({ _id: user._id });
-      if(updatedUser) {
-        user.userId = updatedUser.userId;
-      }
+      user.userId = userIdString; // Manually update the in-memory user object
     }
     
     const role = email === 'tatidheeraj@gmail.com' ? 'admin' : 'user';
-    const userId = user.userId || user._id.toString();
+    const userId = user.userId;
 
     return {
       message: 'Login successful!',
@@ -412,7 +409,4 @@ export async function reserveBook(bookId: string, userId: string) {
   }
 }
 
-
-
-
-
+    
