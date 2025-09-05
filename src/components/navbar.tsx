@@ -5,11 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "./ui/sheet";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { LayoutDashboard, LogIn, UserPlus, Menu, Library, BookUser, LogOut, UserCircle, Mail, KeySquare } from "lucide-react";
+import { LayoutDashboard, LogIn, UserPlus, Menu, Library, BookUser, LogOut, UserCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Separator } from "./ui/separator";
 
 type User = {
     id: string;
@@ -44,12 +42,14 @@ export function Navbar() {
 
     return (
         <>
-            <Button variant="ghost" asChild>
-                <Link href="/my-books" {...sheetCloseProps} className={inSheet ? commonClasses : ''}>
-                    <BookUser />
-                    My Books
-                </Link>
-            </Button>
+            {user && (
+                 <Button variant="ghost" asChild>
+                    <Link href="/my-books" {...sheetCloseProps} className={inSheet ? commonClasses : ''}>
+                        <BookUser />
+                        My Books
+                    </Link>
+                </Button>
+            )}
             {user?.role === 'admin' && (
                 <Button variant="ghost" asChild>
                     <Link href="/dashboard" {...sheetCloseProps} className={inSheet ? commonClasses : ''}>
@@ -90,62 +90,19 @@ export function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-2">
+          <NavLinks />
           {user ? (
             <>
-              <NavLinks />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                     <UserCircle className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-medium text-muted-foreground">{user.name}</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64">
-                    <div className="grid gap-4">
-                        <div className="space-y-2">
-                            <h4 className="font-medium leading-none">My Account</h4>
-                            <p className="text-sm text-muted-foreground">
-                                Your personal account details.
-                            </p>
-                        </div>
-                        <div className="grid gap-2">
-                            <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="grid gap-0.5">
-                                    <div className="font-semibold">{user.name}</div>
-                                    <div className="flex items-center text-xs text-muted-foreground">
-                                        <Mail className="mr-1.5 h-3 w-3"/>
-                                        {user.email}
-                                    </div>
-                                    <div className="flex items-center text-xs text-muted-foreground">
-                                       <KeySquare className="mr-1.5 h-3 w-3" />
-                                       User ID: {user.id}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <Separator />
-                        <div className="flex flex-col space-y-1">
-                             <Button variant="ghost" size="sm" className="justify-start" onClick={() => router.push('/my-books')}>
-                                <BookUser className="mr-2 h-4 w-4" />
-                                <span>My Books</span>
-                            </Button>
-                             {user.role === 'admin' && (
-                                <Button variant="ghost" size="sm" className="justify-start" onClick={() => router.push('/dashboard')}>
-                                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                                    <span>Admin</span>
-                                </Button>
-                            )}
-                            <Button variant="ghost" size="sm" className="justify-start text-destructive hover:text-destructive" onClick={handleLogout}>
-                                <LogOut className="mr-2 h-4 w-4" />
-                                <span>Logout</span>
-                            </Button>
-                        </div>
-                    </div>
-                </PopoverContent>
-              </Popover>
+              <Button variant="ghost" asChild>
+                <Link href="/account" className="flex items-center gap-2">
+                   <UserCircle className="h-5 w-5 text-primary" />
+                   My Account
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
             </>
           ) : (
             <AuthButtons />
@@ -173,9 +130,17 @@ export function Navbar() {
                   {user ? (
                     <>
                       <div className="flex items-center gap-3 p-2 rounded-md bg-muted">
-                        <UserCircle className="h-5 w-5 text-primary" />
+                        <Avatar className="h-8 w-8">
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
                         <span className="text-sm font-semibold">{user.name}</span>
                       </div>
+                       <SheetClose asChild>
+                          <Link href="/account" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
+                            <UserCircle />
+                            My Account
+                          </Link>
+                       </SheetClose>
                        <SheetClose asChild>
                          <NavLinks inSheet={true} />
                        </SheetClose>
