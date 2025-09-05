@@ -22,7 +22,9 @@ const BookRecommendationSchema = z.object({
   author: z.string().describe('The author of the recommended book.'),
   reason: z
     .string()
-    .describe('A brief, compelling reason why the user might like this book based on their preferences.'),
+    .describe(
+      'A brief, compelling reason why the user might like this book based on their preferences.'
+    ),
 });
 
 const RecommendBooksOutputSchema = z.object({
@@ -39,6 +41,19 @@ export async function recommendBooks(
   return llmResponse;
 }
 
+const recommendBooksPrompt = ai.definePrompt({
+  name: 'recommendBooksPrompt',
+  input: {schema: RecommendBooksInputSchema},
+  output: {schema: RecommendBooksOutputSchema},
+  prompt: `You are an expert librarian, a curator of literary journeys.
+      A user has shared their reading preferences with you.
+      Your task is to recommend 3-5 books that align with their tastes.
+      For each book, provide the title, the author, and a compelling, one-sentence reason why this specific user would enjoy it.
+      Do not recommend books that are already in the library catalog.
+      Here are the user's preferences: {{{readingPreferences}}}
+      Return your recommendations in a structured JSON format.`,
+});
+
 const recommendBooksFlow = ai.defineFlow(
   {
     name: 'recommendBooksFlow',
@@ -46,20 +61,7 @@ const recommendBooksFlow = ai.defineFlow(
     outputSchema: RecommendBooksOutputSchema,
   },
   async input => {
-    const prompt = ai.definePrompt({
-      name: 'recommendBooksPrompt',
-      input: {schema: RecommendBooksInputSchema},
-      output: {schema: RecommendBooksOutputSchema},
-      prompt: `You are an expert librarian, a curator of literary journeys.
-          A user has shared their reading preferences with you.
-          Your task is to recommend 3-5 books that align with their tastes.
-          For each book, provide the title, the author, and a compelling, one-sentence reason why this specific user would enjoy it.
-          Do not recommend books that are already in the library catalog.
-          Here are the user's preferences: {{{readingPreferences}}}
-          Return your recommendations in a structured JSON format.`,
-    });
-
-    const {output} = await prompt(input);
+    const {output} = await recommendBooksPrompt(input);
     if (!output) {
       throw new Error('No output from AI model');
     }

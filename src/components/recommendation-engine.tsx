@@ -31,7 +31,8 @@ export function RecommendationEngine() {
 
   useEffect(() => {
     if (state.message && state.recommendations) {
-      formRef.current?.reset();
+      // Keep the form content for user reference
+      // formRef.current?.reset();
     }
   }, [state]);
 
