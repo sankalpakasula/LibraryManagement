@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState, useActionState, useTransition } from 'react';
@@ -15,14 +16,17 @@ import { PlusCircle, Loader2 } from "lucide-react";
 import { addBook, type AddBookState } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getUsersAction } from '@/lib/actions';
 
 const initialState: AddBookState = {};
 
 type DashboardBook = Book & {
-    borrowedBy?: string;
+    borrowedBy?: string; // This will now be the 7-digit userId
     reservedBy?: string[];
 };
+
+type UserMap = { [key: string]: string }; // Maps user _id to 7-digit userId
 
 
 function AddBookSubmitButton() {
@@ -84,19 +88,25 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     startTransition(async () => {
-        const [allBooks, details] = await Promise.all([
+        const [allBooks, details, allUsers] = await Promise.all([
           getBooksAction(),
-          getBorrowsAndReservationsAction()
+          getBorrowsAndReservationsAction(),
+          getUsersAction()
         ]);
         
+        const userMap: UserMap = allUsers.reduce((acc, user) => {
+            acc[user.id] = user.userId;
+            return acc;
+        }, {} as UserMap);
+        
         const booksWithDetails = allBooks.map(book => {
-          const borrowedDetail = details.borrows.find(b => b.bookId === book.id);
-          const reservedDetails = details.reservations.filter(r => r.bookId === book.id);
+          const borrowDetail = details.borrows.find(b => b.bookId === book.id);
+          const reservationDetails = details.reservations.filter(r => r.bookId === book.id);
           
           return {
             ...book,
-            borrowedBy: borrowedDetail ? borrowedDetail.userId : undefined,
-            reservedBy: reservedDetails.map(r => r.userId)
+            borrowedBy: borrowDetail ? userMap[borrowDetail.userId] : undefined,
+            reservedBy: reservationDetails.map(r => userMap[r.userId])
           }
         });
 
@@ -217,3 +227,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+    

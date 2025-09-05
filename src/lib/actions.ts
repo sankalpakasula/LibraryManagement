@@ -8,6 +8,31 @@ import type { Book } from '@/components/book-item';
 import { seedDatabase } from './data';
 import { ObjectId } from 'mongodb';
 
+type User = {
+    id: string;
+    userId: string;
+    name: string;
+    email: string;
+}
+
+export async function getUsersAction(): Promise<User[]> {
+    try {
+        const { db } = await connectToDatabase();
+        const users = await db.collection("users").find({}).toArray();
+
+        return users.map((user) => ({
+            id: user._id.toString(),
+            userId: user.userId,
+            name: user.name,
+            email: user.email,
+        }));
+    } catch (error) {
+        console.error("Error fetching users from MongoDB:", error);
+        return [];
+    }
+}
+
+
 export async function getBooksAction(): Promise<Book[]> {
   try {
     await seedDatabase();
@@ -36,11 +61,16 @@ export async function getMyBooksAction(userId: string): Promise<Book[]> {
     if (!userId) return [];
     try {
         const { db } = await connectToDatabase();
-        const userObjectId = new ObjectId(userId);
+        const user = await db.collection('users').findOne({ userId: userId });
+        if (!user) return [];
+        
+        const userObjectId = user._id;
 
         const borrows = await db.collection('borrows').find({ userId: userObjectId }).toArray();
         const reserved = await db.collection('reservations').find({ userId: userObjectId }).toArray();
         const bookIds = [...borrows.map(b => b.bookId), ...reserved.map(r => r.bookId)];
+
+        if (bookIds.length === 0) return [];
 
         const books = await db
             .collection("books")
@@ -49,10 +79,9 @@ export async function getMyBooksAction(userId: string): Promise<Book[]> {
             .toArray();
 
         return books.map((book) => {
-            const { _id, borrowedBy, ...rest } = book;
+            const { _id, ...rest } = book;
             return {
                 id: _id.toString(),
-                 borrowedBy: borrowedBy?.toString(),
                 ...rest,
             } as unknown as Book;
         });
@@ -90,3 +119,5 @@ export async function getBorrowsAndReservationsAction() {
         return { borrows: [], reservations: [] };
     }
 }
+
+    

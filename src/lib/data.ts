@@ -1,3 +1,4 @@
+
 import { connectToDatabase } from "./mongodb";
 import { ObjectId } from 'mongodb';
 
@@ -46,30 +47,39 @@ export async function seedDatabase() {
   try {
     const { db } = await connectToDatabase();
     const booksCollection = db.collection("books");
-    
-    // Create a dummy user for relationship seeding if it doesn't exist
     const usersCollection = db.collection("users");
-    const fakeUserId = new ObjectId('663a8b4a7e36c5e21a8c5478');
-    const fakeUser = await usersCollection.findOne({ _id: fakeUserId });
-    if (!fakeUser) {
+
+    // Check if the 'admin' user exists
+    const adminUser = await usersCollection.findOne({ email: 'tatidheeraj@gmail.com' });
+    if (!adminUser) {
+        const hashedPassword = await bcrypt.hash('adminpassword', 10);
+        const adminUserId = Math.floor(1000000 + Math.random() * 9000000).toString();
         await usersCollection.insertOne({
-            _id: fakeUserId,
-            userId: fakeUserId.toString(),
-            name: 'Demo User',
-            email: 'user@example.com',
-            // In a real app, password would be hashed
-            password: 'password123',
+            name: 'Dheeraj Tati',
+            email: 'tatidheeraj@gmail.com',
+            password: hashedPassword,
+            userId: adminUserId,
             createdAt: new Date(),
         });
     }
 
-    const firstBook = await booksCollection.findOne({});
-    // If the collection is empty or the documents are missing the 'borrowedBy' field, re-seed.
-    if (!firstBook || !firstBook.hasOwnProperty('borrowedBy')) {
-      console.log("Books collection is empty or needs user relationship field, seeding database...");
-      
-      // Clear the collection to ensure a fresh start
-      await booksCollection.deleteMany({});
+    // Check if a regular 'demo' user exists
+    const demoUser = await usersCollection.findOne({ email: 'user@example.com' });
+    if (!demoUser) {
+        const hashedPassword = await bcrypt.hash('password123', 10);
+        const demoUserId = Math.floor(1000000 + Math.random() * 9000000).toString();
+        await usersCollection.insertOne({
+            name: 'Demo User',
+            email: 'user@example.com',
+            password: hashedPassword,
+            userId: demoUserId,
+            createdAt: new Date(),
+        });
+    }
+
+    const bookCount = await booksCollection.countDocuments();
+    if (bookCount === 0) {
+      console.log("Books collection is empty, seeding database...");
       
       const booksToInsert = initialBooks.map(book => ({
         ...book,
@@ -80,13 +90,15 @@ export async function seedDatabase() {
         height: 400,
         dataAiHint: 'book cover',
         dueDate: null,
-        borrowedBy: null, // Add the borrowedBy field
+        borrowedBy: null,
       }));
       
       await booksCollection.insertMany(booksToInsert);
-      console.log("Database seeded successfully with user relationship field.");
+      console.log("Database seeded successfully with books.");
     }
   } catch (error) {
     console.error("Error seeding database:", error);
   }
 }
+
+    

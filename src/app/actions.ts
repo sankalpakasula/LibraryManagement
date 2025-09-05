@@ -9,6 +9,23 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
 
+// Helper function to generate a unique 7-digit userId
+async function generateUniqueUserId(): Promise<string> {
+  const { db } = await connectToDatabase();
+  const usersCollection = db.collection('users');
+  let userId;
+  let isUnique = false;
+  while (!isUnique) {
+    userId = Math.floor(1000000 + Math.random() * 9000000).toString();
+    const existingUser = await usersCollection.findOne({ userId });
+    if (!existingUser) {
+      isUnique = true;
+    }
+  }
+  return userId!;
+}
+
+
 const recommendationSchema = z.object({
   borrowingHistory: z.string().min(10, { message: 'Please describe your borrowing history in at least 10 characters.' }),
   readingPreferences: z.string().min(10, { message: 'Please describe your reading preferences in at least 10 characters.' }),
@@ -93,15 +110,13 @@ export async function signupUser(prevState: SignupState, formData: FormData): Pr
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    const newUserId = new ObjectId();
+    const userId = await generateUniqueUserId();
     
     await usersCollection.insertOne({
-      _id: newUserId,
-      userId: newUserId.toString(),
       name,
       email,
       password: hashedPassword,
+      userId: userId,
       createdAt: new Date(),
     });
 
@@ -161,14 +176,14 @@ export async function loginUser(prevState: LoginState, formData: FormData): Prom
       };
     }
     
-    // Retroactively add userId if it's missing to fix existing accounts
-    if (!user.userId) {
-      const userIdString = user._id.toString();
+    // Backfill userId if it is missing or not a 7-digit string
+    if (!user.userId || !/^\d{7}$/.test(user.userId)) {
+      const newUserId = await generateUniqueUserId();
       await usersCollection.updateOne(
         { _id: user._id },
-        { $set: { userId: userIdString } }
+        { $set: { userId: newUserId } }
       );
-      user.userId = userIdString; // Manually update the in-memory user object
+      user.userId = newUserId; // Manually update the in-memory user object
     }
     
     const role = email === 'tatidheeraj@gmail.com' ? 'admin' : 'user';
@@ -253,8 +268,14 @@ export async function borrowBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
     const bookObjectId = new ObjectId(bookId);
-    const userObjectId = new ObjectId(userId);
     
+    // Find the user by their unique 7-digit userId
+    const user = await db.collection('users').findOne({ userId: userId });
+    if (!user) {
+        throw new Error("User not found.");
+    }
+    const userObjectId = user._id;
+
     const book = await db.collection('books').findOne({ _id: bookObjectId });
 
     if (!book || book.available <= 0) {
@@ -301,7 +322,11 @@ export async function returnBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
     const bookObjectId = new ObjectId(bookId);
-    const userObjectId = new ObjectId(userId);
+    const user = await db.collection('users').findOne({ userId: userId });
+    if (!user) {
+        throw new Error("User not found.");
+    }
+    const userObjectId = user._id;
 
     const book = await db.collection('books').findOne({ _id: bookObjectId });
 
@@ -366,7 +391,13 @@ export async function reserveBook(bookId: string, userId: string) {
   try {
     const { db } = await connectToDatabase();
     const bookObjectId = new ObjectId(bookId);
-    const userObjectId = new ObjectId(userId);
+    
+    const user = await db.collection('users').findOne({ userId: userId });
+    if (!user) {
+        throw new Error("User not found.");
+    }
+    const userObjectId = user._id;
+
     
     const book = await db.collection('books').findOne({ _id: bookObjectId });
 
@@ -407,5 +438,7 @@ export async function reserveBook(bookId: string, userId: string) {
      throw new Error((e as Error).message);
   }
 }
+
+    
 
     
