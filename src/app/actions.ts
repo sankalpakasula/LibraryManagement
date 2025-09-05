@@ -27,7 +27,6 @@ async function generateUniqueUserId(): Promise<string> {
 
 
 const recommendationSchema = z.object({
-  borrowingHistory: z.string().min(10, { message: 'Please describe your borrowing history in at least 10 characters.' }),
   readingPreferences: z.string().min(10, { message: 'Please describe your reading preferences in at least 10 characters.' }),
 });
 
@@ -35,14 +34,12 @@ export type RecommendationState = {
   message?: string;
   recommendations?: RecommendBooksOutput['recommendations'];
   errors?: {
-    borrowingHistory?: string[];
     readingPreferences?: string[];
   };
 }
 
 export async function getRecommendations(prevState: RecommendationState, formData: FormData): Promise<RecommendationState> {
   const validatedFields = recommendationSchema.safeParse({
-    borrowingHistory: formData.get('borrowingHistory'),
     readingPreferences: formData.get('readingPreferences'),
   });
 
@@ -450,3 +447,4 @@ export async function reserveBook(bookId: string, userId: string) {
     
 
     
+

@@ -13,9 +13,6 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const RecommendBooksInputSchema = z.object({
-  borrowingHistory: z
-    .string()
-    .describe('The user’s past borrowing history, including titles and authors.'),
   readingPreferences: z
     .string()
     .describe('The user’s reading preferences, such as genres and authors they like.'),
@@ -47,7 +44,7 @@ const prompt = ai.definePrompt({
   // output: {schema: RecommendBooksOutputSchema},
   prompt: `You are a helpful and knowledgeable librarian at the LibroSmart library. Your goal is to provide excellent, personalized book recommendations.
 
-Based on the user's borrowing history and reading preferences below, please suggest exactly 3 books they might enjoy. For each book, provide the title, author, and a short, compelling reason for the recommendation.
+Based on the user's reading preferences below, please suggest exactly 3 books they might enjoy. For each book, provide the title, author, and a short, compelling reason for the recommendation.
 
 You must provide your response as a JSON object that conforms to the following TypeScript type:
 '''ts
@@ -59,9 +56,6 @@ type RecommendBooksOutput = {
   }[];
 };
 '''
-
-Borrowing History:
-{{{borrowingHistory}}}
 
 Reading Preferences:
 {{{readingPreferences}}}

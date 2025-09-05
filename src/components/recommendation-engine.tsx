@@ -56,20 +56,6 @@ export function RecommendationEngine() {
       <form ref={formRef} action={formAction}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="borrowingHistory">Your Borrowing History</Label>
-            <Textarea
-              id="borrowingHistory"
-              name="borrowingHistory"
-              placeholder="e.g., 'The Hobbit' by J.R.R. Tolkien, 'Dune' by Frank Herbert..."
-              required
-              className="bg-background"
-              aria-describedby='history-error'
-            />
-            {state.errors?.borrowingHistory && (
-              <p id="history-error" className="text-sm font-medium text-destructive">{state.errors.borrowingHistory[0]}</p>
-            )}
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="readingPreferences">Your Reading Preferences</Label>
             <Textarea
               id="readingPreferences"
