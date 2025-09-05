@@ -2,11 +2,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { KeySquare, Mail, User } from 'lucide-react';
+import { KeySquare, Mail, User, LogOut } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 type User = {
     id: string;
@@ -18,14 +20,25 @@ type User = {
 export default function AccountPage() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
+        } else {
+            // If no user, redirect to login
+            router.push('/login');
         }
         setLoading(false);
-    }, []);
+    }, [router]);
+    
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        router.push('/');
+    };
+
 
     return (
         <div className="bg-background text-foreground font-body min-h-screen">
@@ -61,7 +74,7 @@ export default function AccountPage() {
                                 <div className="w-full space-y-3 pt-4">
                                     <div className="flex items-center gap-3">
                                         <Mail className="h-5 w-5 text-muted-foreground" />
-                                        <span className="text-sm">{user.email}</span>
+                                        <span className="text-sm font-medium">{user.email}</span>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <KeySquare className="h-5 w-5 text-muted-foreground" />
@@ -73,6 +86,14 @@ export default function AccountPage() {
                             <p className="text-center text-muted-foreground">Please log in to view your account details.</p>
                         )}
                     </CardContent>
+                     {user && (
+                        <CardFooter>
+                            <Button variant="outline" className="w-full" onClick={handleLogout}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Logout
+                            </Button>
+                        </CardFooter>
+                    )}
                 </Card>
             </div>
         </div>

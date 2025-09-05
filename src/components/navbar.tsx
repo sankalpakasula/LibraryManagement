@@ -92,7 +92,6 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-2">
           <NavLinks />
           {user ? (
-            <>
               <Button variant="ghost" asChild>
                 <Link href="/account" className="flex items-center gap-2">
                    <Avatar className="h-6 w-6">
@@ -101,11 +100,6 @@ export function Navbar() {
                    {user.name}
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </>
           ) : (
             <AuthButtons />
           )}
