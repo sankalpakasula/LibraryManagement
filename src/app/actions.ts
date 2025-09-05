@@ -305,33 +305,36 @@ export async function returnBook(bookId: string, userId: string) {
     // Remove the borrow record
     await db.collection('borrows').deleteOne({ _id: borrowRecord._id });
     
-    const newAvailable = book.available + 1;
     // Check for reservations to determine the new status
     const reservation = await db.collection('reservations').findOne({ bookId: bookObjectId }, { sort: { reservedAt: 1 } });
-    let newStatus = newAvailable > 0 ? 'Available' : 'Checked Out';
     
     if (reservation) {
       // If there was a reservation, assign the book to the reserving user
-      newStatus = 'Checked Out';
+      // The available count doesn't change because it goes directly to the next person.
       await db.collection('borrows').insertOne({
         bookId: bookObjectId,
         userId: reservation.userId,
         borrowedAt: new Date(),
       });
       await db.collection('reservations').deleteOne({ _id: reservation._id });
-      // Don't increment available count as it goes to the next person
+      // The status remains 'Checked Out' or becomes 'Reserved' if there are more reservations
+      const remainingReservations = await db.collection('reservations').countDocuments({ bookId: bookObjectId });
+      await db.collection('books').updateOne(
+        { _id: bookObjectId },
+        { $set: { status: remainingReservations > 0 ? 'Reserved' : 'Checked Out' } }
+      );
     } else {
+       // If no reservation, the book becomes available
+       const newAvailable = book.available + 1;
        await db.collection('books').updateOne(
         { _id: bookObjectId },
-        { $inc: { available: 1 } }
+        { 
+          $inc: { available: 1 },
+          $set: { status: newAvailable > 0 ? 'Available' : 'Checked Out' }
+        }
       );
     }
     
-    await db.collection('books').updateOne(
-        { _id: bookObjectId },
-        { $set: { status: book.available + 1 > 0 ? 'Available' : 'Checked Out' } }
-    );
-
     revalidatePath('/');
     revalidatePath('/dashboard');
     revalidatePath('/my-books');
