@@ -46,9 +46,14 @@ export async function seedDatabase() {
     const { db } = await connectToDatabase();
     const booksCollection = db.collection("books");
     
-    const count = await booksCollection.countDocuments();
-    if (count === 0) {
-      console.log("No books found, seeding database...");
+    const firstBook = await booksCollection.findOne({});
+    // If the collection is empty or the documents are missing the 'genre' field, re-seed.
+    if (!firstBook || !firstBook.genre) {
+      console.log("Books collection is empty or needs genre update, seeding database...");
+      
+      // Clear the collection to ensure a fresh start
+      await booksCollection.deleteMany({});
+      
       const booksToInsert = initialBooks.map(book => ({
         ...book,
         available: book.copies,
@@ -59,8 +64,9 @@ export async function seedDatabase() {
         dataAiHint: 'book cover',
         dueDate: null,
       }));
+      
       await booksCollection.insertMany(booksToInsert);
-      console.log("Database seeded successfully.");
+      console.log("Database seeded successfully with genres.");
     }
   } catch (error) {
     console.error("Error seeding database:", error);
